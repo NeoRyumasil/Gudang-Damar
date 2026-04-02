@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
+use App\Services\DatabaseService;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -18,5 +19,13 @@ Route::prefix('{current_team}')
 Route::middleware(['auth'])->group(function () {
     Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
 });
+
+Route::get('/test', function () {
+    $databaseService = new DatabaseService();
+    $data = $databaseService->testConnection();
+    return response()->json($data);
+});
+
+
 
 require __DIR__.'/settings.php';
