@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureTeamMembership;
 use App\Services\DatabaseService;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\BarangController;
 
 Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -25,6 +26,9 @@ Route::get('/test', function () {
     $data = $databaseService->testConnection();
     return response()->json($data);
 });
+
+
+Route::resource('barang', BarangController::class);
 
 
 
