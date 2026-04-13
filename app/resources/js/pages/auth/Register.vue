@@ -12,8 +12,8 @@ import { store } from '@/routes/register';
 
 defineOptions({
     layout: {
-        title: 'Create an account',
-        description: 'Enter your details below to create your account',
+        title: 'GUDANG DAMAR',
+        description: 'Sistem Manajemen Gudang Damar',
     },
 });
 </script>
@@ -29,7 +29,7 @@ defineOptions({
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">Nama</Label>
                 <Input
                     id="name"
                     type="text"
@@ -38,13 +38,13 @@ defineOptions({
                     :tabindex="1"
                     autocomplete="name"
                     name="name"
-                    placeholder="Full name"
+                    placeholder="Nama Lengkap"
                 />
                 <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Alamat Email</Label>
                 <Input
                     id="email"
                     type="email"
@@ -52,7 +52,7 @@ defineOptions({
                     :tabindex="2"
                     autocomplete="email"
                     name="email"
-                    placeholder="email@example.com"
+                    placeholder="email@contoh.com"
                 />
                 <InputError :message="errors.email" />
             </div>
@@ -91,12 +91,12 @@ defineOptions({
                 data-test="register-user-button"
             >
                 <Spinner v-if="processing" />
-                Create account
+                Buat Akun
             </Button>
         </div>
 
         <div class="text-center text-sm text-muted-foreground">
-            Already have an account?
+           Udah punya akun nich?
             <TextLink
                 :href="login()"
                 class="underline underline-offset-4"

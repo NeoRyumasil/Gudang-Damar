@@ -11,8 +11,8 @@ import { email } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Forgot password',
-        description: 'Enter your email to receive a password reset link',
+        title: 'GUDANG DAMAR',
+        description: 'Sistem Manajemen Gudang Damar',
     },
 });
 
@@ -34,14 +34,14 @@ defineProps<{
     <div class="space-y-6">
         <Form v-bind="email.form()" v-slot="{ errors, processing }">
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Alamat Email</Label>
                 <Input
                     id="email"
                     type="email"
                     name="email"
                     autocomplete="off"
                     autofocus
-                    placeholder="email@example.com"
+                    placeholder="email@contoh.com"
                 />
                 <InputError :message="errors.email" />
             </div>
@@ -59,7 +59,7 @@ defineProps<{
         </Form>
 
         <div class="space-x-1 text-center text-sm text-muted-foreground">
-            <span>Or, return to</span>
+            <span>sudah ingat passwordnya?</span>
             <TextLink :href="login()">log in</TextLink>
         </div>
     </div>
