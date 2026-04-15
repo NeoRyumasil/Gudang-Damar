@@ -21,7 +21,7 @@ berdasarkan atribut dan ukuran.
 |          **Name**          |      **NIM**        |                 **Role**              |
 |----------------------------|---------------------|---------------------------------------|
 | Devo Ghassan Savero        | 103012300005        | UI/UX Designer & Front-End Programmer |
-| Damar Muharram             | 103012300096        | Front-End Programmer                  |
+| Damar Muharram             | 103012300096        | Front-End Programmer & Database                  |
 | Bimantara Ardi Winata      | 103012300282        | Back-End Programmer                   |
 | Muhammad Alvin Ababil      | 103012330064        | Project Manager & Back-End Programmer |
 | Arya Wijaya                | 103012330330        | Back-End Programmer                   |
@@ -57,10 +57,28 @@ cd app
 ```
 copy the .env .example
 rename it to .env
-set the value in .env 
 ```
 
-### Step 4. Uncomment this in php.ini
+### Step 4 Fill this blanks in .env
+```
+SUPABASE_URL=your-supabase-url
+SUPABASE_KEY=your-supabase-key
+
+HUGGINGFACE_API_KEY= Add your Hugging Face API key here
+HUGGINGFACE_MODEL= Add your Hugging Face model name here
+```
+
+### Step 5. install
+```
+composer install
+npm install
+```
+### Step 6. Generate app key
+```
+php artisan key:generate
+```
+
+### Step 7. Uncomment this in php.ini
 ```bash
 extension_dir = "ext"
 extension=mbstring
@@ -69,12 +87,12 @@ extension=pdo_pgsql
 extension=pgsql
 ```
 
-### Step 5. Run the Project
+### Step 8. Run the Project
 ```bash
 composer run dev
 ```
 
-### Step 6. Go to Localhost Links to See the Project
+### Step 9. Go to Localhost Links to See the Project
 ```
 Vite = http://localhost:5173/
 
