@@ -89,25 +89,25 @@ function hapus(id: number) {
 
             <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                 <input v-model="search" type="text"
-                       placeholder="Cari nama, merek, bahan, bentuk..."
-                       class="border border-gray-300 px-4 py-2 rounded-lg w-full md:w-72" />
+                       placeholder="🔍︎ Cari nama, merek, bahan, bentuk..."
+                       class="border border-gray-300 px-4 py-2 rounded-lg w-full md:w-72 text-black" />
 
                 <div class="relative flex gap-1">
                     <button @click="showMenu = !showMenu"
-                            class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap">
+                            class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap text-gray-700">
                         Sort: {{ activeLabel }} <span class="text-xs">▼</span>
                     </button>
                     <button @click="sortDir = sortDir === 'asc' ? 'desc' : 'asc'"
-                            class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg">
+                            class="bg-gray-200 hover:bg-gray-300 px-3 py-2 flex rounded-lg items-center gap-1 text-gray-700">
                         {{ sortDir === 'asc' ? '↑' : '↓' }}
                     </button>
 
                     <div v-if="showMenu"
-                         class="absolute top-full right-0 mt-1 bg-white border rounded-lg shadow-lg z-10 w-48">
+                         class="absolute top-full mt-1 bg-white border shadow-lg z-10 w-48 rounded-lg">
                         <button v-for="[key, label] in columns" :key="key"
                                 @click="sortBy = key; showMenu = false"
-                                class="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                                :class="{ 'bg-blue-50 font-semibold text-blue-600': sortBy === key }">
+                                class="block w-full text-left px-4 py-2 hover:bg-blue-500 hover:text-white text-gray-700 first:rounded-t-lg last:rounded-b-lg"
+                                :class="{ 'bg-blue-500 text-white ': sortBy === key }">
                             {{ label }}
                         </button>
                     </div>

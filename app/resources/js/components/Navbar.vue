@@ -13,6 +13,7 @@ import { Link } from '@inertiajs/vue3';
             <li><Link href="/pesanan" id="buttonPesanan">Pesanan</Link></li>
             <li><Link href="/grafik" id="buttonGrafik">Grafik</Link></li>
             <li><Link href="/image-generation" id="buttonImageGeneration">Image Generation</Link></li>
+            <li><Link href="/" id="Log out">Log Out</Link></li>
         </ul>
     </header>
 </template>
