@@ -49,26 +49,26 @@ const inputEmail = ref(props.email);
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">Password</Label>
+                <Label for="password">Sandi</Label>
                 <PasswordInput
                     id="password"
                     name="password"
                     autocomplete="new-password"
                     class="mt-1 block w-full"
                     autofocus
-                    placeholder="Password"
+                    placeholder="Sandi"
                 />
                 <InputError :message="errors.password" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password_confirmation"> Confirm password </Label>
+                <Label for="password_confirmation"> konfirmasi Sandi</Label>
                 <PasswordInput
                     id="password_confirmation"
                     name="password_confirmation"
                     autocomplete="new-password"
                     class="mt-1 block w-full"
-                    placeholder="Confirm password"
+                    placeholder="konfirmasi Sandi"
                 />
                 <InputError :message="errors.password_confirmation" />
             </div>

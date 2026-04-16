@@ -14,8 +14,8 @@ import { request } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'GUDANG DAMAR',
-        description: 'Sistem Manajemen Gudang Damar',
+        title: 'Gudang Damar',
+        description: 'Sistem Manajemen Penyimpanan Barang',
     },
 });
 
@@ -40,22 +40,22 @@ defineProps<{
         v-bind="store.form()"
         :reset-on-success="['password']"
         v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
+        class="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl shadow-xl p-8 flex flex-col gap-5"
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="name">Nama User</Label>
+                <Label for="email">Alamat Email</Label>
                 <Input
-                    id="name"
-                    type="text"
-                    name="name"
+                    id="email"
+                    type="email"
+                    name="email"
                     required
                     autofocus
                     :tabindex="1"
-                    autocomplete="name"
-                    placeholder="Nama User"
+                    autocomplete="email"
+                    placeholder="email@contoh.com"
                 />
-                <InputError :message="errors.name" />
+                <InputError :message="errors.email" />
             </div>
 
             <div class="grid gap-2">
@@ -67,7 +67,7 @@ defineProps<{
                         class="text-sm"
                         :tabindex="5"
                     >
-                        Forgot password?
+                        Lupa sandi?
                     </TextLink>
                 </div>
                 <PasswordInput
@@ -75,22 +75,22 @@ defineProps<{
                     name="password"
                     required
                     :tabindex="2"
-                    autocomplete="password"
-                    placeholder="Sandi"
+                    autocomplete="current-password"
+                    placeholder="Password"
                 />
                 <InputError :message="errors.password" />
             </div>
 
             <div class="flex items-center justify-between">
-                <Label for="remember" class="flex items-center space-x-3">
+                <Label for="remember" class="flex items-center space-x-1">
                     <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Jangan lupakan aku 🥲</span>
+                    <span>mau di ingetin terus gak? 😘</span>
                 </Label>
             </div>
 
             <Button
                 type="submit"
-                class="mt-4 w-full"
+                class="mt-4 w-full hover:bg-green-500 hover:text-white transition-colors"
                 :tabindex="4"
                 :disabled="processing"
                 data-test="login-button"
@@ -104,13 +104,13 @@ defineProps<{
                     <span class="w-full border-t" />
                 </div>
                 <div class="relative flex justify-center text-xs uppercase">
-                    <span class="bg-background px-2 text-muted-foreground">Or continue with</span>
+                    <span class="bg-white px-2 text-black">Or continue with</span>
                 </div>
             </div>
 
             <a
                 href="/auth/google/redirect"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-white text-black px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-green-500 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 data-test="google-login-button"
             >
                 <svg class="h-4 w-4" viewBox="0 0 24 24">
@@ -136,11 +136,11 @@ defineProps<{
         </div>
 
         <div
-            class="text-center text-sm text-muted-foreground"
-            v-if="canRegister"
+            class="text-center text-sm text-gray-800"
+             v-if="canRegister"
         >
-            gak punya akun ya?
-            <TextLink :href="register()" :tabindex="5">Register</TextLink>
+            Belum punya akun ya?
+            <TextLink :href="register()" :tabindex="5">Registrasi</TextLink>
         </div>
     </Form>
 </template>
