@@ -59,6 +59,9 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
             'supabase_url' => env('SUPABASE_URL'),
             'supabase_key' => env('SUPABASE_KEY'),
+            'options' => [
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ],
         ],
 
         'sqlsrv' => [
