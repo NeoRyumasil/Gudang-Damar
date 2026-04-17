@@ -14,8 +14,8 @@ import { request } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Log in to your account',
-        description: 'Enter your email and password below to log in',
+        title: 'Gudang Damar',
+        description: 'Sistem Manajemen Penyimpanan Barang',
     },
 });
 
@@ -40,11 +40,11 @@ defineProps<{
         v-bind="store.form()"
         :reset-on-success="['password']"
         v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
+        class="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl shadow-xl p-8 flex flex-col gap-5"
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Alamat Email</Label>
                 <Input
                     id="email"
                     type="email"
@@ -53,21 +53,21 @@ defineProps<{
                     autofocus
                     :tabindex="1"
                     autocomplete="email"
-                    placeholder="email@example.com"
+                    placeholder="email@contoh.com"
                 />
                 <InputError :message="errors.email" />
             </div>
 
             <div class="grid gap-2">
                 <div class="flex items-center justify-between">
-                    <Label for="password">Password</Label>
+                    <Label for="password">Sandi</Label>
                     <TextLink
                         v-if="canResetPassword"
                         :href="request()"
                         class="text-sm"
                         :tabindex="5"
                     >
-                        Forgot password?
+                        Lupa sandi?
                     </TextLink>
                 </div>
                 <PasswordInput
@@ -82,15 +82,15 @@ defineProps<{
             </div>
 
             <div class="flex items-center justify-between">
-                <Label for="remember" class="flex items-center space-x-3">
+                <Label for="remember" class="flex items-center space-x-1">
                     <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Remember me</span>
+                    <span>mau di ingetin terus gak? 😘</span>
                 </Label>
             </div>
 
             <Button
                 type="submit"
-                class="mt-4 w-full"
+                class="mt-4 w-full hover:bg-green-500 hover:text-white transition-colors"
                 :tabindex="4"
                 :disabled="processing"
                 data-test="login-button"
@@ -104,13 +104,13 @@ defineProps<{
                     <span class="w-full border-t" />
                 </div>
                 <div class="relative flex justify-center text-xs uppercase">
-                    <span class="bg-background px-2 text-muted-foreground">Or continue with</span>
+                    <span class="bg-white px-2 text-black">Or continue with</span>
                 </div>
             </div>
 
             <a
                 href="/auth/google/redirect"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-white text-black px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-green-500 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 data-test="google-login-button"
             >
                 <svg class="h-4 w-4" viewBox="0 0 24 24">
@@ -136,11 +136,11 @@ defineProps<{
         </div>
 
         <div
-            class="text-center text-sm text-muted-foreground"
-            v-if="canRegister"
+            class="text-center text-sm text-gray-800"
+             v-if="canRegister"
         >
-            Don't have an account?
-            <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+            Belum punya akun ya?
+            <TextLink :href="register()" :tabindex="5">Registrasi</TextLink>
         </div>
     </Form>
 </template>

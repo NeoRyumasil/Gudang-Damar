@@ -12,8 +12,7 @@ import { store } from '@/routes/register';
 
 defineOptions({
     layout: {
-        title: 'Create an account',
-        description: 'Enter your details below to create your account',
+        title: 'Gudang Damar',
     },
 });
 </script>
@@ -25,11 +24,11 @@ defineOptions({
         v-bind="store.form()"
         :reset-on-success="['password', 'password_confirmation']"
         v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
+        class="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl shadow-xl p-8 flex flex-col gap-5"
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">Nama</Label>
                 <Input
                     id="name"
                     type="text"
@@ -44,7 +43,7 @@ defineOptions({
             </div>
 
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Alamat Email</Label>
                 <Input
                     id="email"
                     type="email"
@@ -52,46 +51,46 @@ defineOptions({
                     :tabindex="2"
                     autocomplete="email"
                     name="email"
-                    placeholder="email@example.com"
+                    placeholder="email@contoh.com"
                 />
                 <InputError :message="errors.email" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">Password</Label>
+                <Label for="password">Sandi</Label>
                 <PasswordInput
                     id="password"
                     required
                     :tabindex="3"
                     autocomplete="new-password"
                     name="password"
-                    placeholder="Password"
+                    placeholder="Sandi"
                 />
                 <InputError :message="errors.password" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password_confirmation">Confirm password</Label>
+                <Label for="password_confirmation">Konfirmasi Sandi</Label>
                 <PasswordInput
                     id="password_confirmation"
                     required
                     :tabindex="4"
                     autocomplete="new-password"
                     name="password_confirmation"
-                    placeholder="Confirm password"
+                    placeholder="Konfirmasi sandi"
                 />
                 <InputError :message="errors.password_confirmation" />
             </div>
 
             <Button
                 type="submit"
-                class="mt-2 w-full"
+                class="mt-4 w-full hover:bg-green-500 hover:text-white transition-colors"
                 tabindex="5"
                 :disabled="processing"
                 data-test="register-user-button"
             >
                 <Spinner v-if="processing" />
-                Create account
+                Buat Akun
             </Button>
 
             <div class="relative my-2">
@@ -99,14 +98,14 @@ defineOptions({
                     <span class="w-full border-t" />
                 </div>
                 <div class="relative flex justify-center text-xs uppercase">
-                    <span class="bg-background px-2 text-muted-foreground">Or continue with</span>
+                    <span class="bg-white px-2 text-black">atau dengan cara lain</span>
                 </div>
             </div>
 
             <a
                 href="/auth/google/redirect"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                data-test="google-register-button"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-white text-black px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-green-500 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                data-test="google-login-button"
             >
                 <svg class="h-4 w-4" viewBox="0 0 24 24">
                     <path
@@ -126,12 +125,12 @@ defineOptions({
                         fill="#EA4335"
                     />
                 </svg>
-                Sign up with Google
+                Sign in with Google
             </a>
         </div>
 
-        <div class="text-center text-sm text-muted-foreground">
-            Already have an account?
+        <div class="text-center text-sm text-gray-800">
+            Udah punya akun ya?
             <TextLink
                 :href="login()"
                 class="underline underline-offset-4"
