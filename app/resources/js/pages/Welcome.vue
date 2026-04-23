@@ -11,7 +11,7 @@ withDefaults(
     },
 );
 
-const dashboardUrl = '/dashboard';
+const dashboardUrl = '/barang';
 </script>
 
 <template>
@@ -20,37 +20,38 @@ const dashboardUrl = '/dashboard';
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
     </Head>
 
-    <div class="min-h-screen bg-background text-on-background antialiased selection:bg-secondary-container selection:text-on-secondary-container">
+    <div class="min-h-screen bg-[#f9f9f9] text-stone-900 antialiased selection:bg-[#f3c99b] selection:text-stone-900">
         <!-- TopNavBar Component -->
-        <nav class="fixed top-0 w-full z-50 bg-[#66ACE6]/90 dark:bg-stone-950/90 backdrop-blur-md shadow-sm">
+        <nav class="fixed top-0 w-full z-50 bg-[#8b5a2b]/90 backdrop-blur-md shadow-sm">
             <div class="max-w-[1280px] mx-auto flex justify-between items-center px-8 h-20">
-                <div class="text-2xl font-bold tracking-tighter text-stone-900 dark:text-stone-50">
+                <div class="text-2xl font-bold tracking-tighter text-white">
                     Gudang Damar
                 </div>
 
-                <div class="flex items-center space-x-4 text-stone-900 dark:text-stone-100">
+                <div class="flex items-center space-x-4 text-white">
                     <Link
                         v-if="$page.props.auth.user"
                         :href="dashboardUrl"
-                        class="inline-block rounded-sm border border-stone-300 px-5 py-1.5 text-sm leading-normal text-stone-900 hover:border-stone-400 dark:border-stone-700 dark:text-stone-100 dark:hover:border-stone-600 transition-colors"
+                        class="inline-block rounded-sm border border-stone-300 px-5 py-1.5 text-sm leading-normal text-white hover:border-stone-400 transition-colors"
                     >
                         Dashboard
                     </Link>
                     <template v-else>
                         <Link
                             :href="login()"
-                            class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-stone-900 hover:border-stone-300 dark:text-stone-100 dark:hover:border-stone-700 transition-colors"
+                            class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-white hover:border-stone-300 transition-colors"
                         >
                             Log in
                         </Link>
                         <Link
                             v-if="canRegister"
                             :href="register()"
-                            class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-stone-900 hover:border-stone-400 dark:border-stone-700 dark:text-stone-100 dark:hover:border-stone-600 transition-colors"
+                            class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-white hover:border-stone-400 transition-colors"
                         >
                             Register
                         </Link>
                     </template>
+
 
                     
                 </div>
@@ -68,7 +69,7 @@ const dashboardUrl = '/dashboard';
                                 Lengkapi dapur Anda dengan peralatan masak berkesan custom. Desain minimalis, fungsionalitas maksimal.
                             </p>
             <div class="pt-4">
-            <a class="inline-flex items-center justify-center px-8 py-4 bg-primary text-on-primary font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-tertiary transition-colors shadow-sm hover:shadow-md" href="#produk">
+            <a class="inline-flex items-center justify-center px-8 py-4 bg-[#8b5a2b] text-white font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-[#78583b] transition-colors shadow-sm hover:shadow-md" href="#produk">
                                     Jelajahi Koleksi
                                 </a>
             </div>
@@ -330,18 +331,18 @@ const dashboardUrl = '/dashboard';
                                 </div>
 
                                 <!-- Floating badge 1 (Top right) -->
-                                <div class="absolute -top-3 -right-3 w-10 h-10 bg-[#1a1a1a] rounded-xl flex items-center justify-center shadow-xl border border-stone-700/50">
-                                    <span class="material-symbols-outlined text-white text-[20px]">draw</span>
+                                <div class="absolute -top-3 -right-3 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-xl border border-stone-200">
+                                    <span class="material-symbols-outlined text-[#8b5a2b] text-[20px]">draw</span>
                                 </div>
 
                                 <!-- Floating badge 2 (Left middle) -->
-                                <div class="absolute top-[35%] -left-5 w-10 h-10 bg-[#1a1a1a] rounded-xl flex items-center justify-center shadow-xl border border-stone-700/50">
-                                    <span class="material-symbols-outlined text-white text-[20px]">image</span>
+                                <div class="absolute top-[35%] -left-5 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-xl border border-stone-200">
+                                    <span class="material-symbols-outlined text-[#8b5a2b] text-[20px]">image</span>
                                 </div>
 
                                 <!-- Floating badge 3 (Bottom left) -->
-                                <div class="absolute bottom-5 -left-4 w-10 h-10 bg-[#1a1a1a] rounded-xl flex items-center justify-center shadow-xl border border-stone-700/50">
-                                    <span class="material-symbols-outlined text-white text-[20px]">show_chart</span>
+                                <div class="absolute bottom-5 -left-4 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-xl border border-stone-200">
+                                    <span class="material-symbols-outlined text-[#8b5a2b] text-[20px]">show_chart</span>
                                 </div>
 
                                 <!-- Plant Graphic (Bottom Right) -->
@@ -419,19 +420,19 @@ const dashboardUrl = '/dashboard';
             </section>
 
             <!-- CTA Section -->
-            <section class="py-section-gap bg-tertiary-container relative overflow-hidden">
+            <section class="py-section-gap bg-[#e8bf9b] relative overflow-hidden">
             <div class="absolute inset-0 opacity-10 pointer-events-none">
             <img alt="Background texture" class="w-full h-full object-cover" data-alt="Subtle dark moody kitchen environment, softly blurred out background, dim warm light reflecting off dark wood and steel surfaces" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgXMKs3bkf0KYqaVgUrfRAiWcMLsxdEpw2HCJKVTQdmX_1eYM3OF3Knv0LF-QPZzFeWQ_tkaH8YUSIpZZTfpUj_UfVrz29lGawJdmhmnqTEbKJl9fTIK7xwiwJ36NAbYWRo93twdl5u_8W3dCzpbEBJxULv5RLFfyfbSn5Sc8FnP5J_WE2VqwK5KG64hxV1GptQ52vflJVzGIfe-lnys0xsfy9pzRxz0cdCF7GBAhJcRS9ZBVRdAPsWAv8jPSQdNIrxTLfXCE7KgI"/>
             </div>
             <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10 text-center">
-            <h2 class="font-display-xl text-[48px] md:text-display-xl text-on-tertiary-container mb-6 max-w-3xl mx-auto">
+            <h2 class="font-display-xl text-[48px] md:text-display-xl text-stone-900 mb-6 max-w-3xl mx-auto">
                                 Lengkapi Peralatan Dapur Anda Sekarang
                             </h2>
             <div class="flex flex-col sm:flex-row justify-center gap-4 mt-12">
-            <a class="inline-flex items-center justify-center px-8 py-4 bg-on-tertiary text-tertiary-container font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-surface-container-low transition-colors" href="#">
+            <a class="inline-flex items-center justify-center px-8 py-4 bg-[#8b5a2b] text-white font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-[#78583b] transition-colors" href="#">
                                     Belanja Sekarang
                                 </a>
-            <a class="inline-flex items-center justify-center px-8 py-4 bg-transparent border border-white text-white font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-white/10 transition-colors" href="#">
+            <a class="inline-flex items-center justify-center px-8 py-4 bg-transparent border border-stone-800 text-stone-800 font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-stone-900/10 transition-colors" href="#">
                                     Hubungi Kami
                                 </a>
             </div>
@@ -439,42 +440,42 @@ const dashboardUrl = '/dashboard';
             </section>
         </main>
         <!-- Footer  -->
-        <footer class="bg-stone-100 dark:bg-stone-900 w-full py-20 mt-32 border-t border-stone-200 dark:border-stone-800">
+        <footer class="bg-stone-100 w-full py-20 mt-32 border-t border-stone-200">
         <div class="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 px-8">
         <div class="flex flex-col gap-6">
-        <div class="text-xl font-bold text-stone-900 dark:text-stone-50">
+        <div class="text-xl font-bold text-stone-900">
                             Gudang Damar
                         </div>
-        <p class="font-sans text-xs tracking-wide text-stone-500 dark:text-stone-400 max-w-xs">
+        <p class="font-sans text-xs tracking-wide text-stone-500 max-w-xs">
                             Menyediakan peralatan dapur premium yang memadukan keindahan fungsional dan ketahanan material untuk setiap kreasi kuliner Anda.
                         </p>
         </div>
         <div class="flex flex-col gap-4">
-        <h4 class="font-sans text-xs tracking-wide font-bold text-stone-900 dark:text-stone-100 uppercase">Tautan Bantuan</h4>
-        <a class="font-sans text-xs tracking-wide text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 underline underline-offset-4 opacity-100 hover:opacity-80 transition-opacity" href="#">Kebijakan Privasi</a>
-        <a class="font-sans text-xs tracking-wide text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 underline underline-offset-4 opacity-100 hover:opacity-80 transition-opacity" href="#">Syarat &amp; Ketentuan</a>
-        <a class="font-sans text-xs tracking-wide text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 underline underline-offset-4 opacity-100 hover:opacity-80 transition-opacity" href="#">Pengiriman</a>
-        <a class="font-sans text-xs tracking-wide text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 underline underline-offset-4 opacity-100 hover:opacity-80 transition-opacity" href="#">FAQ</a>
+        <h4 class="font-sans text-xs tracking-wide font-bold text-stone-900 uppercase">Tautan Bantuan</h4>
+        <a class="font-sans text-xs tracking-wide text-stone-500 hover:text-stone-900 underline underline-offset-4 opacity-100 hover:opacity-80 transition-opacity" href="#">Kebijakan Privasi</a>
+        <a class="font-sans text-xs tracking-wide text-stone-500 hover:text-stone-900 underline underline-offset-4 opacity-100 hover:opacity-80 transition-opacity" href="#">Syarat &amp; Ketentuan</a>
+        <a class="font-sans text-xs tracking-wide text-stone-500 hover:text-stone-900 underline underline-offset-4 opacity-100 hover:opacity-80 transition-opacity" href="#">Pengiriman</a>
+        <a class="font-sans text-xs tracking-wide text-stone-500 hover:text-stone-900 underline underline-offset-4 opacity-100 hover:opacity-80 transition-opacity" href="#">FAQ</a>
         </div>
         <div class="flex flex-col gap-4">
-        <h4 class="font-sans text-xs tracking-wide font-bold text-stone-900 dark:text-stone-100 uppercase">Kontak</h4>
-        <p class="font-sans text-xs tracking-wide text-stone-500 dark:text-stone-400">Jl. Dapur Sejahtera No. 45<br/>Jakarta Selatan, 12345</p>
-        <p class="font-sans text-xs tracking-wide text-stone-500 dark:text-stone-400">halo@gudangdamar.com</p>
+        <h4 class="font-sans text-xs tracking-wide font-bold text-stone-900 uppercase">Kontak</h4>
+        <p class="font-sans text-xs tracking-wide text-stone-500">Jl. Dapur Sejahtera No. 45<br/>Jakarta Selatan, 12345</p>
+        <p class="font-sans text-xs tracking-wide text-stone-500">halo@gudangdamar.com</p>
         </div>
         <div class="flex flex-col gap-4">
-        <h4 class="font-sans text-xs tracking-wide font-bold text-stone-900 dark:text-stone-100 uppercase">Ikuti Kami</h4>
+        <h4 class="font-sans text-xs tracking-wide font-bold text-stone-900 uppercase">Ikuti Kami</h4>
         <div class="flex gap-4">
-        <a class="text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 opacity-100 hover:opacity-80 transition-opacity" href="#">
+        <a class="text-stone-500 hover:text-stone-900 opacity-100 hover:opacity-80 transition-opacity" href="#">
         <span class="material-symbols-outlined" data-icon="photo_camera">photo_camera</span>
         </a>
-        <a class="text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 opacity-100 hover:opacity-80 transition-opacity" href="#">
+        <a class="text-stone-500 hover:text-stone-900 opacity-100 hover:opacity-80 transition-opacity" href="#">
         <span class="material-symbols-outlined" data-icon="forum">forum</span>
         </a>
         </div>
         </div>
         </div>
-        <div class="max-w-[1280px] mx-auto px-8 mt-16 pt-8 border-t border-stone-200/50 dark:border-stone-800/50">
-        <p class="font-sans text-xs tracking-wide text-stone-500 dark:text-stone-400 text-center md:text-left">
+        <div class="max-w-[1280px] mx-auto px-8 mt-16 pt-8 border-t border-stone-200/50">
+        <p class="font-sans text-xs tracking-wide text-stone-500 text-center md:text-left">
                         © 2024 Gudang Damar. Crafting Kitchen Excellence.
                     </p>
         </div>

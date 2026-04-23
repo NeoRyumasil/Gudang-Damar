@@ -182,14 +182,7 @@ const exportData = () => {
                     </div>
                     <div class="flex items-center gap-3">
                         <!-- BUTTON GRAFIK -->
-                        <Link 
-                            href="/grapik"
-                            class="flex items-center gap-2 bg-surface-container-lowest border border-slate-200 text-primary px-4 py-2.5 rounded-lg font-bold text-sm hover:bg-slate-50 transition-all"
-                        >
-                            <span class="material-symbols-outlined text-lg">leaderboard</span>
-                            Grafik
-                        </Link>
-
+                        
                         <button
                             @click="exportData"
                             class="flex items-center gap-2 rounded-lg bg-[#006e25] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#006e25]/20 transition-all hover:opacity-90"
