@@ -1,6 +1,6 @@
 <script setup>
 import { router } from '@inertiajs/vue3'
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 
 // Props dari controller
@@ -22,6 +22,7 @@ const form = reactive({
   jumlah:        null,
   bentuk_barang: null,
   catatan:       '',
+  harga:         null,
 })
 
 // ── Helper ───────────────────────────────────────────────────
@@ -31,6 +32,7 @@ const resetForm = () => {
   form.jumlah        = null
   form.bentuk_barang = null
   form.catatan       = ''
+  form.harga         = null
   isEditing.value    = false
   editId.value       = null
 }
@@ -49,6 +51,7 @@ const openEdit = (servis) => {
   form.jumlah        = servis.jumlah || null
   form.bentuk_barang = servis.bentuk_barang || null
   form.catatan       = servis.catatan ?? ''
+  form.harga         = servis.harga || null
   showModal.value    = true
 }
 
@@ -116,6 +119,19 @@ const truncate = (text, maxLength = 40) => {
   if (!text) return '-'
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
 }
+
+// ── Format harga (Rupiah) ────────────────────────────────────
+const formatRupiah = (value) => {
+  if (!value && value !== 0) return '-'
+  return 'Rp ' + Number(value).toLocaleString('id-ID')
+}
+
+// ── Total pendapatan (dari servis yang sudah selesai) ────────
+const totalPendapatan = computed(() => {
+  return props.servisList
+    .filter(s => !isBelumSelesai(s.tanggalterkirim))
+    .reduce((sum, s) => sum + (Number(s.harga) || 0), 0)
+})
 </script>
 
 <template>
@@ -173,6 +189,16 @@ const truncate = (text, maxLength = 40) => {
             </h3>
           </div>
         </div>
+        <!-- ✨ Kartu Pendapatan -->
+        <div class="summary-card">
+          <div class="summary-icon purple">
+            <span class="material-symbols-outlined">payments</span>
+          </div>
+          <div>
+            <p class="summary-label">Total Pendapatan</p>
+            <h3 class="summary-value">{{ formatRupiah(totalPendapatan) }}</h3>
+          </div>
+        </div>
       </div>
 
       <!-- Table -->
@@ -186,6 +212,7 @@ const truncate = (text, maxLength = 40) => {
                 <th>Bahan</th>
                 <th>Jumlah</th>
                 <th>Bentuk</th>
+                <th>Harga</th>
                 <th>Catatan</th>
                 <th>Tgl Pemesanan</th>
                 <th>Tgl Selesai</th>
@@ -207,6 +234,7 @@ const truncate = (text, maxLength = 40) => {
                 <td>{{ servis.bahan }}</td>
                 <td class="td-jumlah">{{ servis.jumlah || '-' }}</td>
                 <td>{{ servis.bentuk_barang || '-' }}</td>
+                <td class="td-harga">{{ formatRupiah(servis.harga) }}</td>
                 <td class="td-catatan" :title="servis.catatan">
                   {{ truncate(servis.catatan) }}
                 </td>
@@ -249,7 +277,7 @@ const truncate = (text, maxLength = 40) => {
               </tr>
 
               <tr v-if="servisList.length === 0">
-                <td colspan="10" class="td-empty">
+                <td colspan="11" class="td-empty">
                   <span class="material-symbols-outlined empty-icon">inbox</span>
                   <p>Belum ada data servis.</p>
                 </td>
@@ -308,18 +336,32 @@ const truncate = (text, maxLength = 40) => {
               </div>
             </div>
 
-            <!-- Bentuk Barang (opsional) -->
-            <div class="form-group">
-              <label>
-                Bentuk Barang (kode)
-                <span class="label-optional">(opsional)</span>
-              </label>
-              <input
-                v-model.number="form.bentuk_barang"
-                type="number"
-                min="1"
-                placeholder="Kosongkan jika tidak ada"
-              />
+            <!-- Bentuk Barang (opsional) + Harga (opsional) -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>
+                  Bentuk Barang (kode)
+                  <span class="label-optional">(opsional)</span>
+                </label>
+                <input
+                  v-model.number="form.bentuk_barang"
+                  type="number"
+                  min="1"
+                  placeholder="Kosongkan jika tidak ada"
+                />
+              </div>
+              <div class="form-group">
+                <label>
+                  Harga
+                  <span class="label-optional">(opsional)</span>
+                </label>
+                <input
+                  v-model.number="form.harga"
+                  type="number"
+                  min="0"
+                  placeholder="Contoh: 50000"
+                />
+              </div>
             </div>
 
             <!-- Catatan (WAJIB) -->
@@ -435,7 +477,7 @@ const truncate = (text, maxLength = 40) => {
 /* ===== Summary ===== */
 .summary-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   margin-bottom: 28px;
 }
@@ -464,6 +506,7 @@ const truncate = (text, maxLength = 40) => {
 .summary-icon.blue   { background: #dbeafe; color: #2563eb; }
 .summary-icon.orange { background: #ffedd5; color: #ea580c; }
 .summary-icon.green  { background: #dcfce7; color: #16a34a; }
+.summary-icon.purple { background: #ede9fe; color: #7c3aed; }
 .summary-icon .material-symbols-outlined { font-size: 24px; }
 
 .summary-label {
@@ -516,6 +559,7 @@ td {
 }
 .td-no     { font-weight: 700; color: #94a3b8; width: 50px; }
 .td-jumlah { font-weight: 700; color: #001e40; }
+.td-harga  { font-weight: 700; color: #006e25; white-space: nowrap; }
 
 .td-catatan {
   max-width: 220px;
@@ -768,6 +812,10 @@ footer {
 }
 
 /* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .summary-row { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 768px) {
   .summary-row   { grid-template-columns: 1fr; }
   .servis-header { flex-direction: column; align-items: flex-start; }

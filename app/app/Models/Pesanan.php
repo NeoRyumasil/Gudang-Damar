@@ -24,9 +24,10 @@ class Pesanan extends Model
         'jumlah',
         'tanggalpemesanan',
         'tanggalterkirim',
-        'bentuk',      
-        'ukuran',    
-        'ketebalan',  
+        'bentuk',
+        'ukuran',
+        'ketebalan',
+        'harga',
     ];
 
     protected $casts = [
@@ -36,8 +37,9 @@ class Pesanan extends Model
         'jumlah'           => 'integer',
         'tanggalpemesanan' => 'datetime',
         'tanggalterkirim'  => 'datetime',
-        'ukuran'           => 'float',   
-        'ketebalan'        => 'float',   
+        'ukuran'           => 'float',
+        'ketebalan'        => 'float',
+        'harga'            => 'integer',
     ];
 
 

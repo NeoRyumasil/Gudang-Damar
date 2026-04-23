@@ -1,6 +1,6 @@
 <script setup>
 import { router, Link } from '@inertiajs/vue3'
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 
 const props = defineProps({
@@ -24,6 +24,7 @@ const form = reactive({
   bentuk:      '',   // ✨ baru
   ukuran:      '',   // ✨ baru (float)
   ketebalan:   '',   // ✨ baru (float)
+  harga:       '',   // ✨ harga
 })
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -35,6 +36,7 @@ const resetForm = () => {
   form.bentuk      = ''
   form.ukuran      = ''
   form.ketebalan   = ''
+  form.harga       = ''
 }
 
 const formatDate = (dateString) => {
@@ -47,6 +49,19 @@ const formatDate = (dateString) => {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${day}-${month}-${year} ${hours}:${minutes}`
 }
+
+// ── Format harga (Rupiah) ────────────────────────────────────
+const formatRupiah = (value) => {
+  if (!value && value !== 0) return '-'
+  return 'Rp ' + Number(value).toLocaleString('id-ID')
+}
+
+// ── Total pendapatan (dari pesanan yang sudah selesai) ───────
+const totalPendapatan = computed(() => {
+  return props.pesananList
+    .filter(p => p.tanggalterkirim)
+    .reduce((sum, p) => sum + (Number(p.harga) || 0), 0)
+})
 
 // ── Modal ────────────────────────────────────────────────────
 const openTambah = () => {
@@ -154,6 +169,16 @@ const hapusPesanan = (id) => {
             <h3 class="summary-value">{{ pesananList.filter(p => p.tanggalterkirim).length }}</h3>
           </div>
         </div>
+        <!-- ✨ Kartu Pendapatan -->
+        <div class="summary-card">
+          <div class="summary-icon purple">
+            <span class="material-symbols-outlined">payments</span>
+          </div>
+          <div>
+            <p class="summary-label">Total Pendapatan</p>
+            <h3 class="summary-value">{{ formatRupiah(totalPendapatan) }}</h3>
+          </div>
+        </div>
       </div>
 
       <!-- List Pesanan (Card-based) -->
@@ -222,6 +247,11 @@ const hapusPesanan = (id) => {
               <div v-if="p.ketebalan" class="info-item">
                 <span class="info-label">Ketebalan</span>
                 <span class="info-value">{{ p.ketebalan }}</span>
+              </div>
+              <!-- ✨ Tampilkan harga -->
+              <div v-if="p.harga" class="info-item">
+                <span class="info-label">Harga</span>
+                <span class="info-value info-harga">{{ formatRupiah(p.harga) }}</span>
               </div>
             </div>
 
@@ -360,6 +390,18 @@ const hapusPesanan = (id) => {
               </div>
             </div>
 
+            <!-- ✨ Field baru: Harga -->
+            <div class="form-group">
+              <label>Harga <span class="label-opt">(opsional)</span></label>
+              <input
+                v-model.number="form.harga"
+                type="number"
+                min="0"
+                :disabled="isSubmitting"
+                placeholder="Contoh: 50000"
+              />
+            </div>
+
             <div class="form-group">
               <label>Catatan <span class="label-opt">(opsional)</span></label>
               <textarea
@@ -445,6 +487,11 @@ const hapusPesanan = (id) => {
               <div v-if="successData.ketebalan" class="detail-row">
                 <span class="detail-label">Ketebalan</span>
                 <span class="detail-value">{{ successData.ketebalan }}</span>
+              </div>
+              <!-- ✨ Tampilkan harga di popup sukses -->
+              <div v-if="successData.harga" class="detail-row">
+                <span class="detail-label">Harga</span>
+                <span class="detail-value highlight">{{ formatRupiah(successData.harga) }}</span>
               </div>
               <div v-if="successData.catatan" class="detail-row detail-row-full">
                 <span class="detail-label">Catatan</span>
@@ -547,7 +594,7 @@ const hapusPesanan = (id) => {
 /* ── Summary Cards ────────────────────────────────────────── */
 .summary-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   margin-bottom: 28px;
 }
@@ -576,6 +623,7 @@ const hapusPesanan = (id) => {
 .summary-icon.blue   { background: #dbeafe; color: #2563eb; }
 .summary-icon.orange { background: #ffedd5; color: #ea580c; }
 .summary-icon.green  { background: #dcfce7; color: #16a34a; }
+.summary-icon.purple { background: #ede9fe; color: #7c3aed; }
 .summary-icon .material-symbols-outlined { font-size: 24px; }
 
 .summary-label {
@@ -753,6 +801,11 @@ const hapusPesanan = (id) => {
   font-size: 14px;
   font-weight: 600;
   color: #000;
+}
+
+.info-harga {
+  color: #006e25;
+  font-weight: 800;
 }
 
 .catatan-section {
@@ -1247,6 +1300,10 @@ footer {
 }
 
 /* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .summary-row { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 768px) {
   .summary-row    { grid-template-columns: 1fr; }
   .pesanan-header { flex-direction: column; align-items: flex-start; }

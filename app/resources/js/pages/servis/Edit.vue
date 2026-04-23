@@ -9,7 +9,8 @@ const props = defineProps({
 
 // form state (isi dari data lama)
 const form = ref({
-  catatanPemesanan: props.servis.catatanPemesanan || ''
+  catatanPemesanan: props.servis.catatanPemesanan || '',
+  harga:            props.servis.harga || null,
 })
 
 // submit update
@@ -32,6 +33,19 @@ const submit = () => {
             class="form-control"
             required
           ></textarea>
+        </div>
+
+        <!-- ✨ Field Harga -->
+        <div class="mb-3">
+          <label class="form-label">Harga</label>
+
+          <input
+            v-model.number="form.harga"
+            type="number"
+            min="0"
+            class="form-control harga-input"
+            placeholder="Contoh: 50000"
+          />
         </div>
 
         <div class="d-flex justify-content-between">
@@ -74,5 +88,13 @@ textarea {
   border: 1px solid #ccc;
   border-radius: 6px;
   resize: vertical;
+}
+
+.harga-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 </style>

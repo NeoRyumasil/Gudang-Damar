@@ -15,6 +15,10 @@ const form = reactive({
   bahan:       props.pesanan.bahan,
   jumlah:      props.pesanan.jumlah,
   catatan:     props.pesanan.catatan ?? '',
+  bentuk:      props.pesanan.bentuk ?? '',
+  ukuran:      props.pesanan.ukuran ?? '',
+  ketebalan:   props.pesanan.ketebalan ?? '',
+  harga:       props.pesanan.harga ?? '',
 })
 
 const submitForm = () => {
@@ -74,6 +78,51 @@ const kembali = () => {
                 required
               />
             </div>
+          </div>
+
+          <!-- ✨ Bentuk -->
+          <div class="form-group">
+            <label>Bentuk <span class="label-opt">(opsional)</span></label>
+            <input
+              v-model="form.bentuk"
+              type="text"
+              placeholder="Contoh: Persegi, Bulat, Persegi Panjang"
+            />
+          </div>
+
+          <!-- ✨ Ukuran & Ketebalan -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ukuran <span class="label-opt">(opsional)</span></label>
+              <input
+                v-model.number="form.ukuran"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Contoh: 10.5"
+              />
+            </div>
+            <div class="form-group">
+              <label>Ketebalan <span class="label-opt">(opsional)</span></label>
+              <input
+                v-model.number="form.ketebalan"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Contoh: 2.5"
+              />
+            </div>
+          </div>
+
+          <!-- ✨ Harga -->
+          <div class="form-group">
+            <label>Harga <span class="label-opt">(opsional)</span></label>
+            <input
+              v-model.number="form.harga"
+              type="number"
+              min="0"
+              placeholder="Contoh: 50000"
+            />
           </div>
 
           <div class="form-group">

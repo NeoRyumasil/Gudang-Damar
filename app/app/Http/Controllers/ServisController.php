@@ -26,6 +26,7 @@ class ServisController extends Controller
             'jumlah'        => 'nullable|integer|min:1',
             'bentuk_barang' => 'nullable|integer|min:1',
             'catatan'       => 'required|string|max:1000',
+            'harga'         => 'nullable|integer|min:0',   // ✨ harga
         ], [
             'nama_barang.required' => 'Nama barang harus diisi.',
             'bahan.required'       => 'Bahan harus diisi.',
@@ -36,6 +37,7 @@ class ServisController extends Controller
         // Default values
         $validated['jumlah']        = $validated['jumlah']        ?? 1;
         $validated['bentuk_barang'] = $validated['bentuk_barang'] ?? 0;
+        $validated['harga']         = $validated['harga']         ?? 0;
 
         // Tanggal pemesanan = sekarang
         $validated['tanggalpemesanan'] = now();
@@ -60,10 +62,12 @@ class ServisController extends Controller
             'jumlah'        => 'nullable|integer|min:1',
             'bentuk_barang' => 'nullable|integer|min:1',
             'catatan'       => 'required|string|max:1000',
+            'harga'         => 'nullable|integer|min:0',   // ✨ harga
         ]);
 
         $validated['jumlah']        = $validated['jumlah']        ?? 1;
         $validated['bentuk_barang'] = $validated['bentuk_barang'] ?? 0;
+        $validated['harga']         = $validated['harga']         ?? 0;
 
         $servis->update($validated);
 
@@ -75,29 +79,29 @@ class ServisController extends Controller
     {
         $servis = Servis::findOrFail($id);
 
+        if (!$servis->harga || $servis->harga <= 0) {
+            return redirect()->route('servis.index')
+                ->with('error', 'Harga servis harus diisi terlebih dahulu!');
+        }
+
+        $pendapatan = $servis->harga * ($servis->jumlah ?? 1);
+
         $servis->update([
             'tanggalterkirim' => now(),
+            'pendapatan'      => $pendapatan,
         ]);
 
         return redirect()->route('servis.index')
-            ->with('success', 'Servis berhasil ditandai selesai.');
+            ->with('success', 'Servis selesai! Pendapatan Rp ' . number_format($servis->pendapatan, 0, ',', '.') . ' tercatat.');
     }
 
     public function destroy($id)
     {
-        $pesanan = Pesanan::findOrFail($id);
+        $servis = Servis::findOrFail($id);
 
-        // Cek apakah ada servis yang terkait
-        $servisTerkait = Servis::where('id_pesanan', $id)->exists();
-        
-        if ($servisTerkait) {
-            return redirect()->route('pesanan.index')
-                ->with('error', 'Tidak bisa hapus pesanan ini karena masih ada data servis yang terkait.');
-        }
+        $servis->delete();
 
-        $pesanan->delete();
-
-        return redirect()->route('pesanan.index')
-            ->with('success', 'Pesanan berhasil dihapus!');
+        return redirect()->route('servis.index')
+            ->with('success', 'Data servis berhasil dihapus!');
     }
 }

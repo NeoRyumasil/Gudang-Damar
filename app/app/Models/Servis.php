@@ -13,7 +13,7 @@ class Servis extends Model
 
     protected $primaryKey = 'id_pesanan';
     public $timestamps = false;
-    public $incrementing = false; 
+    public $incrementing = false;
     protected $keyType = 'int';
 
     protected $fillable = [
@@ -25,6 +25,7 @@ class Servis extends Model
         'tanggalpemesanan',
         'bentuk_barang',
         'catatan',
+        'harga',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class Servis extends Model
         'jumlah'           => 'integer',
         'bentuk_barang'    => 'integer',
         'id_pesanan'       => 'integer',
+        'harga'            => 'integer',
     ];
 
     protected $appends = ['id_servis'];

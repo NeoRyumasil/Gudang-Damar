@@ -26,6 +26,7 @@ class PesananController extends Controller
             'bentuk'      => 'nullable|string|max:255',   // ✨ varchar
             'ukuran'      => 'nullable|numeric|min:0',    // ✨ float
             'ketebalan'   => 'nullable|numeric|min:0',    // ✨ float
+            'harga'       => 'nullable|integer|min:0',    // ✨ harga
         ]);
 
         $data['tanggalpemesanan'] = now();
@@ -49,6 +50,7 @@ class PesananController extends Controller
             'bentuk'      => 'nullable|string|max:255',   // ✨ varchar
             'ukuran'      => 'nullable|numeric|min:0',    // ✨ float
             'ketebalan'   => 'nullable|numeric|min:0',    // ✨ float
+            'harga'       => 'nullable|integer|min:0',    // ✨ harga
         ]);
 
         if ($request->is_terkirim && !$pesanan->tanggalterkirim) {
@@ -79,13 +81,24 @@ class PesananController extends Controller
     {
         $pesanan = Pesanan::findOrFail($id);
 
+        // Validasi harga wajib diisi
+        if (!$pesanan->harga || $pesanan->harga <= 0) {
+            return redirect()->route('pesanan.index')
+                ->with('error', 'Harga pesanan harus diisi terlebih dahulu!');
+        }
+
         if (!$pesanan->tanggalterkirim) {
+            // Hitung pendapatan = harga × jumlah (snapshot saat selesai)
+            $pendapatan = $pesanan->harga * $pesanan->jumlah;
+
             $pesanan->update([
-                'tanggalterkirim' => now()
+                'tanggalterkirim' => now(),
+                'pendapatan'      => $pendapatan,
             ]);
         }
 
-        return redirect()->route('pesanan.index')->with('success', 'Pesanan berhasil diselesaikan!');
+        return redirect()->route('pesanan.index')
+            ->with('success', 'Pesanan selesai! Pendapatan Rp ' . number_format($pesanan->pendapatan, 0, ',', '.') . ' tercatat.');
     }
 
     public function edit($id)
