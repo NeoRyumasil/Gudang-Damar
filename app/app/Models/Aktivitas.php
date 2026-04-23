@@ -59,7 +59,7 @@ class Aktivitas
         }
 
         return $query->get()->map(function ($row) {
-            $hargaSatuan = $row->barang->harga ?? 0;
+            $hargaSatuan = $row->harga ?? ($row->barang->harga ?? 0);
 
             return [
                 'id'                => $row->id_pesanan,
@@ -68,8 +68,8 @@ class Aktivitas
                 'bahan'             => $row->bahan,
                 'kategori'          => $row->bahan,
                 'jumlah'            => $row->jumlah,
-                'harga_satuan'      => $hargaSatuan,
-                'total_harga'       => $hargaSatuan * $row->jumlah,
+                'harga_satuan'      => null,
+                'total_harga'       => $hargaSatuan,
                 'catatan'           => $row->catatan,
                 'bentuk'            => $row->bentuk,
                 'ukuran'            => $row->ukuran,
@@ -145,8 +145,8 @@ class Aktivitas
                 'bahan'             => $row->bahan,
                 'kategori'          => $row->bahan,
                 'jumlah'            => $row->jumlah,
-                'harga_satuan'      => 0, // Servis tidak punya harga satuan di tabelnya
-                'total_harga'       => 0,
+                'harga_satuan'      => null,
+                'total_harga'       => $row->harga ?? 0,
                 'catatan'           => $row->catatan,
                 'bentuk'            => $row->bentuk_barang,
                 'ukuran'            => null,
@@ -168,17 +168,28 @@ class Aktivitas
         $totalBarang  = Barang::sum('jumlah') ?? 0;
         $totalServis  = Servis::count();
 
-        // Total pendapatan = (harga barang x jumlah di pesanan) + total barang langsung
+        // Total pendapatan = (harga barang di pesanan selesai) + total barang langsung + total servis selesai
         $pendapatanPesanan = Pesanan::with('barang')->get()->sum(function ($p) {
-            return ($p->barang->harga ?? 0) * $p->jumlah;
+            if ($p->tanggalterkirim) {
+                return $p->harga ?? ($p->barang->harga ?? 0);
+            }
+            return 0;
         });
 
         $pendapatanBarang = Barang::sum('total') ?? 0;
+        
+        $pendapatanServis = Servis::get()->sum(function ($s) {
+            $isSelesai = !empty($s->tanggalterkirim) && !str_starts_with($s->tanggalterkirim, '1970-01-01') && !str_starts_with($s->tanggalterkirim, '0000-00-00');
+            if ($isSelesai) {
+                return $s->harga ?? 0;
+            }
+            return 0;
+        });
 
         return [
             'total_transaksi'       => $totalPesanan + $totalServis,
             'total_barang_terjual'  => $totalBarang,
-            'total_pendapatan'      => $pendapatanPesanan + $pendapatanBarang,
+            'total_pendapatan'      => $pendapatanPesanan + $pendapatanBarang + $pendapatanServis,
             'total_pesanan'         => $totalPesanan,
             'total_servis'          => $totalServis,
         ];
