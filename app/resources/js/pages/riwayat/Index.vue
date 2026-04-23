@@ -311,22 +311,21 @@ const exportData = () => {
                             <tr class="border-b border-[#c3c6d1]/20 bg-[#f3f4f5]">
                                 <th class="px-6 py-4 text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Jenis</th>
                                 <th class="px-6 py-4 text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Nama Barang</th>
-                                <th class="px-6 py-4 text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Kategori</th>
                                 <th class="px-6 py-4 text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Jumlah</th>
                                 <th class="px-6 py-4 text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Harga Satuan</th>
                                 <th class="px-6 py-4 text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Total Harga</th>
                                 <th class="px-6 py-4 text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Status</th>
                                 <th class="px-6 py-4 text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Tanggal</th>
-                                <th class="px-6 py-4 text-right text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Aksi</th>
+                                <th class="px-6 py-4 text-right text-[10px] font-extrabold tracking-[0.15em] text-slate-500 uppercase">Lihat</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#c3c6d1]/10">
                             <tr
                                 v-for="(item, index) in displayTransactions"
-                                :key="`${item.jenis}-${item.id}-${index}`"
+                                :key="`${item.jenis}-${item.sub_jenis || ''}-${item.id}-${index}`"
                                 class="transition-colors hover:bg-[#f3f4f5]/60"
                             >
-                                <!-- Jenis dengan badge berwarna -->
+                                <!-- Jenis -->
                                 <td class="px-6 py-5">
                                     <span
                                         class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold tracking-widest uppercase"
@@ -339,6 +338,8 @@ const exportData = () => {
                                     </span>
                                 </td>
 
+                               
+                                <!-- Nama Barang -->
                                 <td class="px-6 py-5">
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-10 w-10 items-center justify-center rounded bg-[#f3f4f5] text-[#001e40]">
@@ -351,53 +352,51 @@ const exportData = () => {
                                     </div>
                                 </td>
 
-                                <td class="px-6 py-5 text-sm font-medium text-[#43474f]">
-                                    {{ item.kategori || '-' }}
-                                </td>
-
+                                <!-- Jumlah -->
                                 <td class="px-6 py-5 text-sm font-bold text-[#001e40]">
                                     {{ item.jumlah }} Unit
                                 </td>
 
+                                <!-- Harga Satuan (null untuk ubah stok) -->
                                 <td class="px-6 py-5 text-sm text-[#43474f]">
                                     {{ formatCurrency(item.harga_satuan) }}
                                 </td>
 
+                                <!-- Total Harga (null untuk ubah stok) -->
                                 <td class="px-6 py-5 text-sm font-extrabold text-[#001e40]">
                                     {{ formatCurrency(item.total_harga) }}
                                 </td>
 
+                                <!-- Status -->
                                 <td class="px-6 py-5">
                                     <span
                                         v-if="item.status === 'Selesai'"
                                         class="rounded-full bg-[#80f98b] px-3 py-1 text-[10px] font-extrabold tracking-widest text-[#007327] uppercase"
-                                    >
-                                        Selesai
-                                    </span>
+                                    >Selesai</span>
                                     <span
                                         v-else-if="item.status === 'Diproses'"
                                         class="rounded-full bg-[#fef3c7] px-3 py-1 text-[10px] font-extrabold tracking-widest text-[#b45309] uppercase"
-                                    >
-                                        Dalam Proses
-                                    </span>
+                                    >Dalam Proses</span>
                                     <span
                                         v-else-if="item.status === 'Dibeli'"
                                         class="rounded-full bg-blue-100 px-3 py-1 text-[10px] font-extrabold tracking-widest text-blue-800 uppercase"
-                                    >
-                                        Dibeli
-                                    </span>
+                                    >Stok Masuk</span>
+                                    <span
+                                        v-else-if="item.status === 'Terjual'"
+                                        class="rounded-full bg-green-100 px-3 py-1 text-[10px] font-extrabold tracking-widest text-green-800 uppercase"
+                                    >Terjual</span>
                                     <span
                                         v-else
-                                        class="rounded-full bg-error-container px-3 py-1 text-[10px] font-extrabold tracking-widest text-on-error-container uppercase"
-                                    >
-                                        Dipesan
-                                    </span>
+                                        class="rounded-full bg-red-100 px-3 py-1 text-[10px] font-extrabold tracking-widest text-red-800 uppercase"
+                                    >Dipesan</span>
                                 </td>
 
+                                <!-- Tanggal -->
                                 <td class="px-6 py-5 text-sm text-[#43474f]">
                                     {{ formatDate(item.tanggal_transaksi) }}
                                 </td>
 
+                                <!-- Aksi -->
                                 <td class="px-6 py-5 text-right">
                                     <button
                                         @click="viewDetail(item)"

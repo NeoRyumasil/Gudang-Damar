@@ -198,24 +198,15 @@ function submitJual() {
         return;
     }
 
-    const stokBaru = selectedBarang.value.jumlah - jualJumlah.value;
-
-    router.put(`/barang/${selectedBarang.value.id_barang}`, {
-        nama: selectedBarang.value.nama,
-        harga: { harga: selectedBarang.value.harga, jumlah: stokBaru },
-        kategori: {
-            ukuran: selectedBarang.value.ukuran,
-            bentuk: selectedBarang.value.bentuk,
-            ketebalan: selectedBarang.value.ketebalan,
-            bahan: selectedBarang.value.bahan,
-            merek: selectedBarang.value.guna_merek,
-        },
+    // ✨ Panggil route /barang/{id}/jual (POST) supaya ter-log dengan benar
+    router.post(`/barang/${selectedBarang.value.id_barang}/jual`, {
+        jumlah: jualJumlah.value,
     }, {
         onSuccess: () => {
             closeDetail();
             Swal.fire({
                 title: 'Terjual!',
-                text: `Barang berhasil dijual. Sisa stok: ${stokBaru}`,
+                text: `Penjualan ${jualJumlah.value} unit berhasil dicatat.`,
                 icon: 'success',
             });
         },
@@ -518,6 +509,17 @@ function submitJual() {
     border-radius: 6px;
     background-color: #fafafa;
     font-size: 14px;
+    color: #000;
+}
+
+.info-row span:first-child {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.info-row span:last-child {
+    color: #000;
+    font-weight: 600;
 }
 
 .fade-enter-active,
@@ -529,6 +531,7 @@ function submitJual() {
 .fade-leave-to {
     opacity: 0;
 }
+
 .slide-enter-active,
 .slide-leave-active {
     transition: all 0.25s ease;

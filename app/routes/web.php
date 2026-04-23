@@ -26,6 +26,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.barang');
 
     Route::resource('barang', BarangController::class);
+    Route::post('/barang/{id}/jual', [BarangController::class, 'jual'])->name('barang.jual');
+    Route::post('/barang/{id}/restok', [BarangController::class, 'restok'])->name('barang.restok');
 
   
 

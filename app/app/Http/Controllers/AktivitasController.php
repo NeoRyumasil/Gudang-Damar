@@ -115,9 +115,6 @@ class AktivitasController extends Controller
         $filters   = $request->all();
         $aktivitas = Aktivitas::all($filters);
 
-        // Di sini Anda bisa integrasikan ke Laravel Excel (maatwebsite/excel)
-        // atau generate CSV sederhana seperti di bawah ini:
-
         $filename = 'riwayat-aktivitas-' . date('Y-m-d') . '.csv';
         $headers  = [
             'Content-Type'        => 'text/csv',
@@ -127,18 +124,20 @@ class AktivitasController extends Controller
         $callback = function () use ($aktivitas) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, [
-                'Jenis', 'Nama Barang', 'Kategori', 'Jumlah',
-                'Harga Satuan', 'Total Harga', 'Status', 'Tanggal Transaksi',
+                'Jenis', 'Sub Jenis', 'Nama Barang', 'Kategori', 'Jumlah',
+                'Harga Satuan', 'Total Harga', 'Pendapatan', 'Status', 'Tanggal Transaksi',
             ]);
 
             foreach ($aktivitas as $row) {
                 fputcsv($handle, [
                     $row['jenis'],
+                    $row['sub_jenis'] ?? '-',     // ✨ baru
                     $row['nama_barang'],
                     $row['kategori'],
                     $row['jumlah'],
                     $row['harga_satuan'],
                     $row['total_harga'],
+                    $row['pendapatan'] ?? 0,      // ✨ baru
                     $row['status'],
                     $row['tanggal_transaksi'],
                 ]);
