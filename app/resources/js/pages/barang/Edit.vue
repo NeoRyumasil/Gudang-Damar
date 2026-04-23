@@ -52,8 +52,8 @@ function submit() {
                    class="w-full p-2 mb-4 border rounded-lg text-black" />
 
             <label class="block mb-1 font-semibold text-gray-700">Ukuran</label>
-            <input v-model="form.kategori.ukuran" type="number"
-                   class="w-full p-2 mb-4 border rounded-lg text-black" />
+            <input v-model="form.kategori.ukuran" type="number" min="0"
+                class="w-full p-2 mb-4 border rounded-lg text-black" />
 
             <label class="block mb-1 font-semibold text-gray-700">Bentuk</label>
             <input v-model="form.kategori.bentuk" type="text"
@@ -68,12 +68,12 @@ function submit() {
                    class="w-full p-2 mb-4 border rounded-lg text-black" />
 
             <label class="block mb-1 font-semibold text-gray-700">Harga (Rp)</label>
-            <input v-model="form.harga.harga" type="number"
-                   class="w-full p-2 mb-4 border rounded-lg text-black" />
+            <input v-model="form.harga.harga" type="number" min="0"
+                class="w-full p-2 mb-4 border rounded-lg text-black" />
 
             <label class="block mb-1 font-semibold text-gray-700">Jumlah</label>
-            <input v-model="form.harga.jumlah" type="number"
-                   class="w-full p-2 mb-4 border rounded-lg text-black" />
+            <input v-model="form.harga.jumlah" type="number" min="0"
+                class="w-full p-2 mb-4 border rounded-lg text-black" />
 
             <div class="flex flex-col gap-3 mt-4">
                 <button type="submit"

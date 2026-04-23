@@ -127,7 +127,27 @@ function submitEdit() {
 }
 
 function hapus(id: number) {
-    if (confirm('Yakin ingin menghapus barang ini?')) router.delete(`/barang/${id}`);
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.delete(`/barang/${id}`, {
+                onSuccess: () => {
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: 'Barang berhasil dihapus.',
+                        icon: 'success',
+                    });
+                },
+            });
+        }
+    });
 }
 
 
@@ -198,15 +218,25 @@ function submitJual() {
         return;
     }
 
-    // ✨ Panggil route /barang/{id}/jual (POST) supaya ter-log dengan benar
-    router.post(`/barang/${selectedBarang.value.id_barang}/jual`, {
-        jumlah: jualJumlah.value,
+    const stokBaru = selectedBarang.value.jumlah - jualJumlah.value;
+    const terjual = jualJumlah.value; // simpan dulu sebelum closeDetail reset ke 0
+
+    router.put(`/barang/${selectedBarang.value.id_barang}`, {
+        nama: selectedBarang.value.nama,
+        harga: { harga: selectedBarang.value.harga, jumlah: stokBaru },
+        kategori: {
+            ukuran: selectedBarang.value.ukuran,
+            bentuk: selectedBarang.value.bentuk,
+            ketebalan: selectedBarang.value.ketebalan,
+            bahan: selectedBarang.value.bahan,
+            merek: selectedBarang.value.guna_merek,
+        },
     }, {
         onSuccess: () => {
             closeDetail();
             Swal.fire({
                 title: 'Terjual!',
-                text: `Penjualan ${jualJumlah.value} unit berhasil dicatat.`,
+                text: `Penjualan ${terjual} unit tercatat. Sisa stok: ${stokBaru}`,
                 icon: 'success',
             });
         },
@@ -400,11 +430,13 @@ function submitJual() {
                             ➖
                         </button>
                         <input v-model.number="jualJumlah" type="number" min="0"
-                               class="flex-1 border border-orange-300 rounded-lg px-3 py-2 text-center text-black font-semibold" />
-                        <button @click="jualJumlah++"
+                            :max="selectedBarang?.jumlah"
+                            class="flex-1 border border-orange-300 rounded-lg px-3 py-2 text-center text-black font-semibold" />
+
+                        <button @click="jualJumlah = Math.min(selectedBarang?.jumlah ?? 0, jualJumlah + 1)"
                                 class="bg-orange-200 hover:bg-orange-300 text-orange-800 w-9 h-9 rounded-lg font-bold text-lg">
                             ➕
-                        </button>
+                            </button>
                     </div>
                     <button @click="submitJual"
                             class="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-semibold text-sm">
@@ -454,8 +486,8 @@ function submitJual() {
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Ukuran</label>
-                    <input v-model="editForm.ukuran" type="number"
-                           class="w-full border rounded-lg px-3 py-2 text-black" />
+                    <input v-model="editForm.ukuran" type="number" min="0"
+                        class="w-full border rounded-lg px-3 py-2 text-black" />
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Bentuk</label>
@@ -474,13 +506,13 @@ function submitJual() {
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Harga (Rp)</label>
-                    <input v-model="editForm.harga" type="number"
-                           class="w-full border rounded-lg px-3 py-2 text-black" />
+                    <input v-model="editForm.harga" type="number" min="0"
+                            class="w-full border rounded-lg px-3 py-2 text-black" />
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Jumlah</label>
-                    <input v-model="editForm.jumlah" type="number"
-                           class="w-full border rounded-lg px-3 py-2 text-black" />
+                    <input v-model="editForm.jumlah" type="number" min="0"
+                            class="w-full border rounded-lg px-3 py-2 text-black" />
                 </div>
             </div>
 

@@ -51,8 +51,8 @@ function submit() {
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label>Ukuran</label>
-                    <input v-model="form.kategori.ukuran" type="number"
-                           class="w-full p-2 border rounded-lg" required />
+                        <input v-model="form.kategori.ukuran" type="number" min="0"
+                            class="w-full p-2 border rounded-lg" required />
                 </div>
                 <div>
                     <label>Bentuk</label>
@@ -60,7 +60,7 @@ function submit() {
                            class="w-full p-2 border rounded-lg" required />
                 </div>
                 <div>
-                    <label>Ketebalan</label>
+                    <label>Ketebalan (cm)</label>
                     <input v-model="form.kategori.ketebalan" type="text"
                            class="w-full p-2 border rounded-lg" required />
                 </div>

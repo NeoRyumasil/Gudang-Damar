@@ -192,7 +192,7 @@ class BarangController extends Controller
         $rules = [
             'nama'               => 'required|string',
             'harga.harga'        => 'required|integer|min:0',
-            'kategori.ukuran'    => 'required|integer',
+            'kategori.ukuran'    => 'required|integer|min:0',
             'kategori.ketebalan' => 'required|string',
             'kategori.bahan'     => 'required|string',
         ];
