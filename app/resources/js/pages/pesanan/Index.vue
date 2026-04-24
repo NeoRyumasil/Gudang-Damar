@@ -16,6 +16,11 @@ const isSubmitting = ref(false)          // ⏳ loading spinner
 const showSuccessModal = ref(false)      // 🎉 popup sukses
 const successData = ref(null)            // data yang baru disimpan
 
+// 🖼️ Image generation
+const isGeneratingImage = ref(false)
+const generatedImageUrl = ref(null)
+const imageError = ref(null)
+
 const form = reactive({
   nama_barang: '',
   bahan:       '',
@@ -37,6 +42,8 @@ const resetForm = () => {
   form.ukuran      = ''
   form.ketebalan   = ''
   form.harga       = ''
+  generatedImageUrl.value = null
+  imageError.value = null
 }
 
 const formatDate = (dateString) => {
@@ -78,6 +85,47 @@ const closeModal = () => {
 const closeSuccessModal = () => {
   showSuccessModal.value = false
   successData.value = null
+}
+
+// ── Generate Image ───────────────────────────────────────────
+const generateImage = async () => {
+  isGeneratingImage.value = true
+  imageError.value = null
+  generatedImageUrl.value = null
+
+  // Bangun prompt dari semua field yang diisi
+  const parts = []
+  if (form.nama_barang) parts.push(`produk: ${form.nama_barang}`)
+  if (form.bahan)       parts.push(`bahan: ${form.bahan}`)
+  if (form.bentuk)      parts.push(`bentuk: ${form.bentuk}`)
+  if (form.ukuran)      parts.push(`ukuran: ${form.ukuran}`)
+  if (form.ketebalan)   parts.push(`ketebalan: ${form.ketebalan} mm`)
+  if (form.jumlah > 1)  parts.push(`jumlah: ${form.jumlah} buah`)
+  if (form.catatan)     parts.push(`catatan: ${form.catatan}`)
+
+  const prompt = `Gambar produk gudang/manufaktur, ${parts.join(', ')}. Tampilan realistis, latar putih bersih, pencahayaan studio.`
+
+  try {
+    const res = await fetch('/generate-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      generatedImageUrl.value = data.url
+    } else {
+      imageError.value = data.message ?? 'Gagal menghasilkan gambar.'
+    }
+  } catch (e) {
+    imageError.value = 'Terjadi kesalahan jaringan.'
+  } finally {
+    isGeneratingImage.value = false
+  }
 }
 
 // ── Submit ───────────────────────────────────────────────────
@@ -410,6 +458,50 @@ const hapusPesanan = (id) => {
                 :disabled="isSubmitting"
                 placeholder="Tambahkan catatan khusus untuk pesanan ini…"
               ></textarea>
+            </div>
+
+            <!-- 🖼️ Image Generation Section -->
+            <div class="image-gen-section">
+              <div class="image-gen-header">
+                <span class="material-symbols-outlined image-gen-icon">auto_awesome</span>
+                <span class="image-gen-title">Pratinjau Gambar AI</span>
+                <span class="label-opt" style="margin-left:4px">(opsional)</span>
+              </div>
+              <p class="image-gen-desc">
+                Klik tombol di bawah untuk membuat visualisasi produk berdasarkan data yang diisi.
+              </p>
+
+              <button
+                type="button"
+                class="btn-generate"
+                :disabled="isGeneratingImage || isSubmitting || !form.nama_barang"
+                @click="generateImage"
+              >
+                <span v-if="!isGeneratingImage" class="material-symbols-outlined">image_search</span>
+                <span v-else class="btn-spinner"></span>
+                {{ isGeneratingImage ? 'Membuat gambar...' : 'Generate Gambar' }}
+              </button>
+
+              <!-- Loading skeleton -->
+              <div v-if="isGeneratingImage" class="image-skeleton">
+                <div class="skeleton-shimmer"></div>
+                <p class="skeleton-text">AI sedang membuat gambar produk…</p>
+              </div>
+
+              <!-- Result image -->
+              <div v-if="generatedImageUrl && !isGeneratingImage" class="image-result">
+                <img :src="generatedImageUrl" alt="Generated product image" class="gen-img" />
+                <a :href="generatedImageUrl" target="_blank" class="btn-open-img">
+                  <span class="material-symbols-outlined">open_in_new</span>
+                  Buka gambar
+                </a>
+              </div>
+
+              <!-- Error -->
+              <div v-if="imageError" class="image-error">
+                <span class="material-symbols-outlined">error</span>
+                {{ imageError }}
+              </div>
             </div>
 
             <div class="modal-actions">
@@ -1312,6 +1404,144 @@ footer {
   .card-actions   { justify-content: stretch; }
   .btn-action     { flex: 1; justify-content: center; }
 }
+
+/* ── 🖼️ Image Generation ──────────────────────────────────── */
+.image-gen-section {
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 18px;
+  background: linear-gradient(135deg, #f0fdf4, #f8fafc);
+  margin-bottom: 4px;
+}
+
+.image-gen-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.image-gen-icon {
+  font-size: 20px;
+  color: #006e25;
+}
+
+.image-gen-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #006e25;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.image-gen-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.btn-generate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1.5px solid #006e25;
+  background: #fff;
+  color: #006e25;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, color .15s, transform .15s;
+  margin-bottom: 14px;
+}
+.btn-generate:hover:not(:disabled) {
+  background: #006e25;
+  color: #fff;
+  transform: translateY(-1px);
+}
+.btn-generate:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.btn-generate .material-symbols-outlined { font-size: 18px; }
+
+.image-skeleton {
+  width: 100%;
+  height: 180px;
+  border-radius: 12px;
+  background: #e2e8f0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,.6) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton-text {
+  position: relative;
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+.image-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.gen-img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.btn-open-img {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #006e25;
+  text-decoration: none;
+  transition: opacity .15s;
+}
+.btn-open-img:hover { opacity: .7; }
+.btn-open-img .material-symbols-outlined { font-size: 16px; }
+
+.image-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 500;
+}
+.image-error .material-symbols-outlined { font-size: 18px; }
 
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
