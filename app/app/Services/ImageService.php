@@ -14,11 +14,17 @@ class ImageService
     private string $model;
     private string $baseUrl = 'https://router.huggingface.co/hf-inference/models/';
 
-    
+    /**
+     * Suffix gaya foto — ditaruh di BELAKANG prompt user.
+     * User prompt jadi subjek utama, ini hanya penentu gaya/kualitas foto.
+     */
     private string $promptSuffix =
         ', product photography, white background, studio lighting, ' .
         'sharp focus, photorealistic, high quality, 4k';
 
+    /**
+     * Negative prompt: hal yang tidak boleh muncul di gambar.
+     */
     private string $negativePrompt =
         'text, typography, lettering, words, letters, watermark, logo, ' .
         'abstract art, painting, illustration, cartoon, anime, ' .
@@ -32,13 +38,41 @@ class ImageService
         $this->model = config('services.huggingface.model');
     }
 
+    private function translateToEnglish(string $text): string
+    {
+        try {
+            $response = Http::timeout(10)
+                ->get('https://api.mymemory.translated.net/get', [
+                    'q'        => $text,
+                    'langpair' => 'id|en',
+                ]);
+
+            if ($response->successful()) {
+                $translated = $response->json('responseData.translatedText');
+                if ($translated && strtolower($translated) !== strtolower($text)) {
+                    Log::info('ImageService translated: "' . $text . '" → "' . $translated . '"');
+                    return $translated;
+                }
+            }
+        } catch (Exception $e) {
+            Log::warning('ImageService translate failed: ' . $e->getMessage());
+        }
+        
+        return $text;
+    }
+
     public function generate(string $prompt, array $options = [], int $maxRetries = 3): string
     {
         $attempt = 0;
 
-        $fullPrompt = $prompt . $this->promptSuffix;
+        // Terjemahkan prompt Indonesia → Inggris sebelum dikirim ke model
+        $translatedPrompt = $this->translateToEnglish($prompt);
 
-        Log::info('ImageService fullPrompt: ' . $fullPrompt);
+        // Gabungkan dengan suffix gaya foto
+        $fullPrompt = $translatedPrompt . $this->promptSuffix;
+
+        Log::info('ImageService original prompt : ' . $prompt);
+        Log::info('ImageService full prompt (EN): ' . $fullPrompt);
 
         while ($attempt < $maxRetries) {
             $response = Http::withHeaders([
