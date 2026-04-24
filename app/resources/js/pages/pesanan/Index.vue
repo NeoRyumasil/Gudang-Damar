@@ -93,17 +93,20 @@ const generateImage = async () => {
   imageError.value = null
   generatedImageUrl.value = null
 
-  // Bangun prompt dari semua field yang diisi
-  const parts = []
-  if (form.nama_barang) parts.push(`produk: ${form.nama_barang}`)
-  if (form.bahan)       parts.push(`bahan: ${form.bahan}`)
-  if (form.bentuk)      parts.push(`bentuk: ${form.bentuk}`)
-  if (form.ukuran)      parts.push(`ukuran: ${form.ukuran}`)
-  if (form.ketebalan)   parts.push(`ketebalan: ${form.ketebalan} mm`)
-  if (form.jumlah > 1)  parts.push(`jumlah: ${form.jumlah} buah`)
-  if (form.catatan)     parts.push(`catatan: ${form.catatan}`)
+  // Prompt: nama & catatan di awal (bobot tertinggi di model diffusion),
+  // lalu spesifikasi teknis di belakang.
+  // Contoh hasil: "Piring besi, Warna Pink, heart shape, 10 cm, 2 mm thick"
+  const desc = []
+  if (form.bahan)      desc.push(`${form.bahan}`)
+  if (form.bentuk)     desc.push(`${form.bentuk} shape`)
+  if (form.ukuran)     desc.push(`${form.ukuran} cm`)
+  if (form.ketebalan)  desc.push(`${form.ketebalan} mm thick`)
+  if (form.jumlah > 1) desc.push(`set of ${form.jumlah}`)
 
-  const prompt = `Gambar produk gudang/manufaktur, ${parts.join(', ')}. Tampilan realistis, latar putih bersih, pencahayaan studio.`
+  const catatanStr = form.catatan ? `, ${form.catatan}` : ''
+  const descStr    = desc.length > 0 ? `, ${desc.join(', ')}` : ''
+
+  const prompt = `${form.nama_barang}${catatanStr}${descStr}`
 
   try {
     const res = await fetch('/generate-image', {
