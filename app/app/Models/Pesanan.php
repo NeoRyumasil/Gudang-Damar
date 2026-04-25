@@ -10,7 +10,7 @@ class Pesanan extends Model
 {
     protected $table      = 'pesanan';
     protected $primaryKey = 'id_pesanan';
-    public $incrementing  = false;   // PK tidak auto-increment di DB
+    public $incrementing  = false;
     protected $keyType    = 'int';
     public $timestamps    = false;
 
@@ -28,6 +28,7 @@ class Pesanan extends Model
         'ukuran',
         'ketebalan',
         'harga',
+        'pendapatan',  // ✅ FIX: tambahkan agar bisa diupdate saat tandai selesai
     ];
 
     protected $casts = [
@@ -40,8 +41,8 @@ class Pesanan extends Model
         'ukuran'           => 'float',
         'ketebalan'        => 'float',
         'harga'            => 'integer',
+        'pendapatan'       => 'integer',  // ✅ FIX: cast ke integer
     ];
-
 
     protected static function booted()
     {
@@ -52,8 +53,6 @@ class Pesanan extends Model
             }
         });
     }
-
-
 
     public function barang()
     {

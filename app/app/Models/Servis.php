@@ -26,6 +26,7 @@ class Servis extends Model
         'bentuk_barang',
         'catatan',
         'harga',
+        'pendapatan',  // ✅ FIX: tambahkan agar bisa diupdate saat tandai selesai
     ];
 
     protected $casts = [
@@ -35,6 +36,7 @@ class Servis extends Model
         'bentuk_barang'    => 'integer',
         'id_pesanan'       => 'integer',
         'harga'            => 'integer',
+        'pendapatan'       => 'integer',  // ✅ FIX: cast ke integer
     ];
 
     protected $appends = ['id_servis'];

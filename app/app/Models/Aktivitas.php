@@ -21,7 +21,7 @@ class Aktivitas
 
     protected static function fromPesanan(array $filters = []): Collection
     {
-        $query = Pesanan::query()->with('barang');
+        $query = Pesanan::query()->with('barang')->orderByDesc('tanggalpemesanan');
 
         if (!empty($filters['search'])) {
             $query->where('nama_barang', 'like', '%' . $filters['search'] . '%');
@@ -37,6 +37,9 @@ class Aktivitas
             $hargaSatuan = $row->harga ?? ($row->barang->harga ?? 0);
             $totalHarga  = $hargaSatuan * $row->jumlah;
 
+            // ✅ FIX: cek tanggalterkirim sebagai Carbon
+            $isSelesai = self::isTanggalValid($row->tanggalterkirim);
+
             return [
                 'id'                => $row->id_pesanan,
                 'jenis'             => 'Pesanan',
@@ -47,7 +50,7 @@ class Aktivitas
                 'jumlah'            => $row->jumlah,
                 'harga_satuan'      => $hargaSatuan,
                 'total_harga'       => $totalHarga,
-                'pendapatan'        => $row->pendapatan ?? ($row->tanggalterkirim ? $totalHarga : 0),
+                'pendapatan'        => $row->pendapatan ?? ($isSelesai ? $totalHarga : 0),
                 'catatan'           => $row->catatan,
                 'bentuk'            => $row->bentuk,
                 'ukuran'            => $row->ukuran,
@@ -55,15 +58,11 @@ class Aktivitas
                 'tanggalpemesanan'  => $row->tanggalpemesanan,
                 'tanggalterkirim'   => $row->tanggalterkirim,
                 'tanggal_transaksi' => $row->tanggalpemesanan,
-                'status'            => $row->tanggalterkirim ? 'Selesai' : 'Dipesan',
+                'status'            => $isSelesai ? 'Selesai' : 'Dipesan',
             ];
         });
     }
 
-    /**
-     * ✨ Semua aktivitas barang dari tabel aktivitas_barang (jual & ubah_stok).
-     * Setiap baris log = 1 baris di Riwayat (histori lengkap).
-     */
     protected static function fromAktivitasBarang(array $filters = []): Collection
     {
         $query = AktivitasBarang::query();
@@ -82,15 +81,15 @@ class Aktivitas
             $isJual = $row->jenis === 'jual';
 
             return [
-                'id'                => $row->id_aktivitas,       // pakai ID log (unik per transaksi)
+                'id'                => $row->id_aktivitas,
                 'jenis'             => 'Barang',
                 'sub_jenis'         => $isJual ? 'Terjual' : 'Stok',
                 'nama_barang'       => $row->nama_barang,
                 'bahan'             => null,
                 'kategori'          => '-',
                 'jumlah'            => $row->jumlah,
-                'harga_satuan'      => $isJual ? $row->harga_satuan : null,   // restok tidak tampilkan harga
-                'total_harga'       => $isJual ? $row->pendapatan : null,     // restok bukan pendapatan
+                'harga_satuan'      => $isJual ? $row->harga_satuan : null,
+                'total_harga'       => $isJual ? $row->pendapatan : null,
                 'pendapatan'        => $row->pendapatan,
                 'catatan'           => $row->catatan,
                 'bentuk'            => null,
@@ -106,7 +105,8 @@ class Aktivitas
 
     protected static function fromServis(array $filters = []): Collection
     {
-        $query = Servis::query();
+        // ✅ FIX: tambah orderBy biar konsisten
+        $query = Servis::query()->orderByDesc('tanggalpemesanan');
 
         if (!empty($filters['search'])) {
             $query->where('nama_barang', 'like', '%' . $filters['search'] . '%');
@@ -119,9 +119,8 @@ class Aktivitas
         }
 
         return $query->get()->map(function ($row) {
-            $isSelesai = !empty($row->tanggalterkirim)
-                && !str_starts_with($row->tanggalterkirim, '1970-01-01')
-                && !str_starts_with($row->tanggalterkirim, '0000-00-00');
+            // ✅ FIX: pakai helper yang aman untuk Carbon object
+            $isSelesai = self::isTanggalValid($row->tanggalterkirim);
 
             return [
                 'id'                => $row->id_pesanan,
@@ -139,11 +138,36 @@ class Aktivitas
                 'ukuran'            => null,
                 'ketebalan'         => null,
                 'tanggalpemesanan'  => $row->tanggalpemesanan,
-                'tanggalterkirim'   => $row->tanggalterkirim,
+                'tanggalterkirim'   => $isSelesai ? $row->tanggalterkirim : null,
                 'tanggal_transaksi' => $row->tanggalpemesanan,
                 'status'            => $isSelesai ? 'Selesai' : 'Diproses',
             ];
         });
+    }
+
+    /**
+     * ✅ FIX: Helper aman untuk cek apakah tanggalterkirim valid (artinya sudah selesai).
+     * Mendukung Carbon, string, dan null. Sentinel date 1970/0000 dianggap "belum selesai".
+     */
+    protected static function isTanggalValid($tanggal): bool
+    {
+        if (empty($tanggal)) {
+            return false;
+        }
+
+        // Cast ke string Y-m-d (Carbon punya format(), string biasa pakai substr)
+        if ($tanggal instanceof \DateTimeInterface) {
+            $tanggalStr = $tanggal->format('Y-m-d');
+        } else {
+            $tanggalStr = substr((string) $tanggal, 0, 10);
+        }
+
+        // Sentinel date = belum selesai
+        if ($tanggalStr === '1970-01-01' || $tanggalStr === '0000-00-00') {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -155,15 +179,18 @@ class Aktivitas
         $totalServis  = Servis::count();
         $totalBarang  = Barang::sum('jumlah') ?? 0;
 
-        // Total transaksi sekarang include jumlah log barang
         $totalLogBarang = AktivitasBarang::count();
 
-        // ✨ Pendapatan dari log barang jenis 'jual' (akurat per transaksi)
+        // ✅ FIX: pendapatan pesanan - filter pesanan yang sudah selesai (tanggalterkirim NOT NULL)
         $pendapatanPesanan = Pesanan::whereNotNull('tanggalterkirim')->sum('pendapatan') ?? 0;
-        $pendapatanServis  = Servis::whereNotNull('pendapatan')->sum('pendapatan') ?? 0;
-        $pendapatanBarang  = AktivitasBarang::where('jenis', 'jual')->sum('pendapatan') ?? 0;
 
-        // Total barang terjual = dari log, bukan akumulasi di tabel barang
+        // ✅ FIX: pendapatan servis - exclude sentinel date 1970-01-01 yang artinya belum selesai
+        $pendapatanServis = Servis::whereNotNull('pendapatan')
+            ->where('tanggalterkirim', '>', '1970-01-02')
+            ->sum('pendapatan') ?? 0;
+
+        $pendapatanBarang = AktivitasBarang::where('jenis', 'jual')->sum('pendapatan') ?? 0;
+
         $totalBarangTerjual = AktivitasBarang::where('jenis', 'jual')->sum('jumlah') ?? 0;
 
         return [
