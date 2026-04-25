@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\GrafikController;
 use App\Services\DatabaseService;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -29,8 +30,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/barang/{id}/jual', [BarangController::class, 'jual'])->name('barang.jual');
     Route::post('/barang/{id}/restok', [BarangController::class, 'restok'])->name('barang.restok');
 
-  
-
     Route::get('/servis',                  [ServisController::class, 'index'])   ->name('servis.index');
     Route::post('/servis',                 [ServisController::class, 'store'])   ->name('servis.store');
     Route::put('/servis/{id}',             [ServisController::class, 'update'])  ->name('servis.update');
@@ -49,24 +48,22 @@ Route::middleware(['auth'])->group(function () {
         return view('test-image');
     });
 
-    Route::get('/grapik', function () {
-        return Inertia\Inertia::render('grapik/index');
-    })->name('grapik.index');
+    // ── Grafik / Analytics ────────────────────────────────────────────────────
+    Route::get('/grafik', [GrafikController::class, 'index'])->name('grafik.index');
 });
 
-Route::prefix('riwayat')->name('riwayat.')->group(function () {
+Route::prefix('riwayat')->name('riwayat.')->middleware(['auth'])->group(function () {
     // Halaman utama Riwayat (Riwayat/Index.vue)
     Route::get('/', [AktivitasController::class, 'index'])->name('index');
- 
+
     // Export ke CSV
     Route::get('/export', [AktivitasController::class, 'export'])->name('export');
- 
+
     // Detail 1 aktivitas (jenis: pesanan/barang/servis)
     Route::get('/{jenis}/{id}', [AktivitasController::class, 'show'])
         ->where('jenis', 'pesanan|barang|servis')
         ->name('show');
 });
-
 
 // Google OAuth Routes (no auth needed)
 Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('auth.google.redirect');

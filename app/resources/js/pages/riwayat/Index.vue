@@ -281,7 +281,7 @@ const exportData = () => {
 
                     <!-- BUTTON GRAFIK -->
                     <Link 
-                        href="/grapik"
+                        href="/grafik"
                         class="flex items-center gap-2 bg-surface-container-lowest border border-slate-200 text-primary px-4 py-2.5 rounded-lg font-bold text-sm hover:bg-slate-50 transition-all"
                     >
                         <span class="material-symbols-outlined text-lg">leaderboard</span>
