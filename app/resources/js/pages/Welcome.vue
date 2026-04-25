@@ -23,7 +23,7 @@ const dashboardUrl = '/barang';
     <div class="min-h-screen bg-[#f9f9f9] text-stone-900 antialiased selection:bg-[#f3c99b] selection:text-stone-900">
         <!-- TopNavBar Component -->
         <nav class="fixed top-0 w-full z-50 bg-[#8b5a2b]/90 backdrop-blur-md shadow-sm">
-            <div class="max-w-[1280px] mx-auto flex justify-between items-center px-8 h-20">
+            <div class="max-w-2560 mx-auto flex justify-between items-center px-8 h-20">
                 <div class="text-2xl font-bold tracking-tighter text-white">
                     Gudang Damar
                 </div>
@@ -420,19 +420,19 @@ const dashboardUrl = '/barang';
             </section>
 
             <!-- CTA Section -->
-            <section class="py-section-gap bg-[#e8bf9b] relative overflow-hidden">
+            <section class="py-section-gap bg-[#45280d] relative overflow-hidden">
             <div class="absolute inset-0 opacity-10 pointer-events-none">
             <img alt="Background texture" class="w-full h-full object-cover" data-alt="Subtle dark moody kitchen environment, softly blurred out background, dim warm light reflecting off dark wood and steel surfaces" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgXMKs3bkf0KYqaVgUrfRAiWcMLsxdEpw2HCJKVTQdmX_1eYM3OF3Knv0LF-QPZzFeWQ_tkaH8YUSIpZZTfpUj_UfVrz29lGawJdmhmnqTEbKJl9fTIK7xwiwJ36NAbYWRo93twdl5u_8W3dCzpbEBJxULv5RLFfyfbSn5Sc8FnP5J_WE2VqwK5KG64hxV1GptQ52vflJVzGIfe-lnys0xsfy9pzRxz0cdCF7GBAhJcRS9ZBVRdAPsWAv8jPSQdNIrxTLfXCE7KgI"/>
             </div>
             <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10 text-center">
-            <h2 class="font-display-xl text-[48px] md:text-display-xl text-stone-900 mb-6 max-w-3xl mx-auto">
+            <h2 class="font-display-xl text-[48px] md:text-display-xl text-white mb-6 max-w-3xl mx-auto">
                                 Lengkapi Peralatan Dapur Anda Sekarang
                             </h2>
             <div class="flex flex-col sm:flex-row justify-center gap-4 mt-12">
-            <a class="inline-flex items-center justify-center px-8 py-4 bg-[#8b5a2b] text-white font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-[#78583b] transition-colors" href="#">
+            <a class="inline-flex items-center justify-center px-8 py-4 bg-[#f4f1ee] text-stone-800 font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-secondary transition-colors" href="#">
                                     Belanja Sekarang
                                 </a>
-            <a class="inline-flex items-center justify-center px-8 py-4 bg-transparent border border-stone-800 text-stone-800 font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-stone-900/10 transition-colors" href="#">
+            <a class="inline-flex items-center justify-center px-8 py-4 bg-transparent border border-white text-white font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT hover:bg-stone-900/10 transition-colors" href="#">
                                     Hubungi Kami
                                 </a>
             </div>

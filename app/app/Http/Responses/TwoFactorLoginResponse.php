@@ -12,6 +12,6 @@ class TwoFactorLoginResponse implements TwoFactorLoginResponseContract
     {
         return $request->wantsJson()
             ? new JsonResponse(['two_factor' => false], 200)
-            : redirect()->intended(route('barang.index'));
+            : redirect()->intended(route('riwayat.index'));
     }
 }

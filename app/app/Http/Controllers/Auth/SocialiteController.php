@@ -70,6 +70,6 @@ class SocialiteController extends Controller
 
         Auth::login($user, remember: true);
 
-        return redirect()->intended(route('barang.index'));
+        return redirect()->intended(route('riwayat.index'));
     }
 }
