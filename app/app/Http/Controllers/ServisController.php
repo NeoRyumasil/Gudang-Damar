@@ -4,7 +4,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Servis;
+use App\Models\Pesanan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ServisController extends Controller
@@ -46,7 +48,27 @@ class ServisController extends Controller
         // untuk menandai "belum selesai" karena kolom NOT NULL
         $validated['tanggalterkirim'] = '1970-01-01 00:00:00';
 
-        Servis::create($validated);
+        // ✨ FIX FK: id_pesanan di tabel servis ber-foreign key ke tabel pesanan.
+        // Jadi sebelum insert servis, kita buat dulu baris induk di pesanan,
+        // lalu pakai id_pesanan-nya. Dibungkus transaction biar atomik.
+        DB::transaction(function () use ($validated) {
+            // 1. Buat induk pesanan dulu agar FK ter-satisfy
+            $pesanan = Pesanan::create([
+                'nama_barang'      => $validated['nama_barang'],
+                'bahan'            => $validated['bahan'],
+                'jumlah'           => $validated['jumlah'],
+                'catatan'          => $validated['catatan'],
+                'tanggalpemesanan' => now(),
+                'tanggalterkirim'  => null,
+            ]);
+
+            // 2. Pakai id_pesanan yang baru dibuat untuk servis.
+            //    Karena di-set manual, hook booted() di model Servis
+            //    tidak menjalankan MAX() lagi (hanya jalan kalau empty).
+            $validated['id_pesanan'] = $pesanan->id_pesanan;
+
+            Servis::create($validated);
+        });
 
         return redirect()->route('servis.index')
             ->with('success', 'Data servis berhasil ditambahkan.');
