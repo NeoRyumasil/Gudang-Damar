@@ -30,11 +30,11 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->reportable(function (\Throwable $e) {
-            \Log::error("=== ORIGINAL EXCEPTION REPORTED ===");
-            \Log::error("Exception: " . get_class($e));
-            \Log::error("Message: " . $e->getMessage());
-            \Log::error("File: " . $e->getFile() . ":" . $e->getLine());
-            \Log::error("Stack Trace: " . $e->getTraceAsString());
-            \Log::error("====================================");
+            error_log("=== ORIGINAL EXCEPTION REPORTED ===");
+            error_log("Exception: " . get_class($e));
+            error_log("Message: " . $e->getMessage());
+            error_log("File: " . $e->getFile() . ":" . $e->getLine());
+            error_log("Trace: " . $e->getTraceAsString());
+            error_log("====================================");
         });
     })->create();
