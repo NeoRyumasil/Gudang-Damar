@@ -46,6 +46,8 @@
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "false",
+    "APP_URL": "https://gudang-damar.vercel.app",
+    "GOOGLE_REDIRECT_URI": "https://gudang-damar.vercel.app/auth/google/callback",
     "LOG_CHANNEL": "stderr",
     "CACHE_STORE": "array",
     "SESSION_DRIVER": "cookie",

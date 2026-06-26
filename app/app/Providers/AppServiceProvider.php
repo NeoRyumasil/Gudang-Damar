@@ -30,13 +30,6 @@ class AppServiceProvider extends ServiceProvider
         if (getenv('VERCEL') === '1' || app()->isProduction()) {
             URL::forceScheme('https');
         }
-
-        if (getenv('VERCEL') === '1') {
-            config([
-                'app.url' => 'https://gudang-damar.vercel.app',
-                'services.google.redirect' => 'https://gudang-damar.vercel.app/auth/google/callback',
-            ]);
-        }
     }
 
     /**
