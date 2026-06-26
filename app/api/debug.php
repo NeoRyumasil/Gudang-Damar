@@ -36,6 +36,15 @@ foreach ($envVars as $var) {
     echo "$var = " . ($val !== false ? $val : '[NOT SET]') . "\n";
 }
 
+echo "\n=== SERVER SUPERGLOBAL ===\n";
+$serverClean = $_SERVER;
+foreach (['DB_URL', 'APP_KEY', 'DB_PASSWORD', 'HTTP_AUTHORIZATION', 'PHP_AUTH_PW'] as $key) {
+    if (isset($serverClean[$key])) {
+        $serverClean[$key] = '*** HIDDEN ***';
+    }
+}
+print_r($serverClean);
+
 echo "\n=== /tmp FILESYSTEM CHECK ===\n";
 foreach ($tmpDirs as $dir) {
     $exists = is_dir($dir) ? 'EXISTS' : 'MISSING';
