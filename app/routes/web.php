@@ -12,6 +12,8 @@ use App\Http\Controllers\ServisController;
 use App\Http\Controllers\PesananController;
 use App\Http\Controllers\AktivitasController;
 
+use Illuminate\Support\Facades\Storage;
+
 Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
@@ -68,5 +70,13 @@ Route::prefix('riwayat')->name('riwayat.')->middleware(['auth'])->group(function
 // Google OAuth Routes (no auth needed)
 Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->name('auth.google.callback');
+
+// Fallback route to serve storage files on Vercel
+Route::get('/storage/{path}', function ($path) {
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+    return response()->file(Storage::disk('public')->path($path));
+})->where('path', '.*');
 
 require __DIR__.'/settings.php';
