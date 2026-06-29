@@ -61,99 +61,140 @@ class GrafikController extends Controller
      */
     private function getSummaryCards(): array
     {
-        $now       = Carbon::now();
-        $thisYear  = $now->year;
-        $lastYear  = $thisYear - 1;
+        $nowLocal  = Carbon::now('Asia/Jakarta');
 
-        // ── Total Revenue bulan ini ─────────────────────────────────────────
-        $revenueThisMonth = $this->getTotalRevenue(
-            $now->copy()->startOfMonth(),
-            $now->copy()->endOfMonth()
-        );
-        $revenueLastMonth = $this->getTotalRevenue(
-            $now->copy()->subMonth()->startOfMonth(),
-            $now->copy()->subMonth()->endOfMonth()
-        );
+        // ── Hitung revenue 3 periode sekaligus dengan 1 query per tabel ──
+        $thisMonthStart = $nowLocal->copy()->startOfMonth()->setTimezone('UTC')->toDateTimeString();
+        $thisMonthEnd   = $nowLocal->copy()->endOfMonth()->setTimezone('UTC')->toDateTimeString();
+        $lastMonthStart = $nowLocal->copy()->subMonth()->startOfMonth()->setTimezone('UTC')->toDateTimeString();
+        $lastMonthEnd   = $nowLocal->copy()->subMonth()->endOfMonth()->setTimezone('UTC')->toDateTimeString();
+        $sameMonthLastYearStart = $nowLocal->copy()->subYear()->startOfMonth()->setTimezone('UTC')->toDateTimeString();
+        $sameMonthLastYearEnd   = $nowLocal->copy()->subYear()->endOfMonth()->setTimezone('UTC')->toDateTimeString();
+
+        // Barang revenue - 1 query untuk 3 periode
+        $barangRevenues = DB::table('aktivitas_barang')
+            ->where('jenis', 'jual')
+            ->selectRaw("
+                SUM(CASE WHEN tanggal BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as this_month,
+                SUM(CASE WHEN tanggal BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as last_month,
+                SUM(CASE WHEN tanggal BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as same_month_ly
+            ", [$thisMonthStart, $thisMonthEnd, $lastMonthStart, $lastMonthEnd, $sameMonthLastYearStart, $sameMonthLastYearEnd])
+            ->first();
+
+        // Pesanan revenue - 1 query untuk 3 periode
+        $pesananRevenues = DB::table('pesanan')
+            ->whereNotNull('tanggalterkirim')
+            ->selectRaw("
+                SUM(CASE WHEN tanggalterkirim BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as this_month,
+                SUM(CASE WHEN tanggalterkirim BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as last_month,
+                SUM(CASE WHEN tanggalterkirim BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as same_month_ly
+            ", [$thisMonthStart, $thisMonthEnd, $lastMonthStart, $lastMonthEnd, $sameMonthLastYearStart, $sameMonthLastYearEnd])
+            ->first();
+
+        // Servis revenue - 1 query untuk 3 periode
+        $servisRevenues = DB::table('servis')
+            ->where('tanggalterkirim', '!=', '1970-01-01 00:00:00')
+            ->whereNotNull('tanggalterkirim')
+            ->selectRaw("
+                SUM(CASE WHEN tanggalterkirim BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as this_month,
+                SUM(CASE WHEN tanggalterkirim BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as last_month,
+                SUM(CASE WHEN tanggalterkirim BETWEEN ? AND ? THEN pendapatan ELSE 0 END) as same_month_ly
+            ", [$thisMonthStart, $thisMonthEnd, $lastMonthStart, $lastMonthEnd, $sameMonthLastYearStart, $sameMonthLastYearEnd])
+            ->first();
+
+        $revenueThisMonth = (int)(($barangRevenues->this_month ?? 0) + ($pesananRevenues->this_month ?? 0) + ($servisRevenues->this_month ?? 0));
+        $revenueLastMonth = (int)(($barangRevenues->last_month ?? 0) + ($pesananRevenues->last_month ?? 0) + ($servisRevenues->last_month ?? 0));
+        $revenueSameMonthLastYear = (int)(($barangRevenues->same_month_ly ?? 0) + ($pesananRevenues->same_month_ly ?? 0) + ($servisRevenues->same_month_ly ?? 0));
 
         $revenueChangePercent = $revenueLastMonth > 0
             ? round((($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100, 1)
             : 0;
 
-        // ── YoY Growth (bulan ini vs bulan yang sama tahun lalu) ──────────────
-        $revenueThisMonthFull = $revenueThisMonth; // sudah dihitung di atas
-        $revenueSameMonthLastYear = $this->getTotalRevenue(
-            $now->copy()->subYear()->startOfMonth(),  // tgl 1 bulan ini tahun lalu
-            $now->copy()->subYear()->endOfMonth()     // akhir bulan ini tahun lalu
-        );
-
         $oneYearGrowth = $revenueSameMonthLastYear > 0
-            ? round((($revenueThisMonthFull - $revenueSameMonthLastYear) / $revenueSameMonthLastYear) * 100, 1)
+            ? round((($revenueThisMonth - $revenueSameMonthLastYear) / $revenueSameMonthLastYear) * 100, 1)
             : 0;
 
-        // ── Peak Revenue Period ─────────────────────────────────────────────
-        $peak = $this->getPeakPeriod();
+        // ── Peak Revenue Period (optimized: 1 query per tabel) ──────────
+        $peak = $this->getPeakPeriod($nowLocal);
 
         return [
             'totalRevenue'        => $revenueThisMonth,
             'revenueChangePercent'=> $revenueChangePercent,
             'oneYearGrowth'       => $oneYearGrowth,
-            'peakPeriod'          => $peak['label'],   // mis. "Q3 '24"
+            'peakPeriod'          => $peak['label'],
             'peakRevenue'         => $peak['revenue'],
         ];
     }
 
     /**
-     * Jumlahkan pendapatan dari 3 sumber: barang (AktivitasBarang jenis=jual),
-     * pesanan (tanggalterkirim not null), servis (tanggalterkirim not sentinel).
-     */
-    private function getTotalRevenue(Carbon $from, Carbon $to): int
-    {
-        // Pendapatan dari penjualan barang
-        $barang = AktivitasBarang::where('jenis', 'jual')
-            ->whereBetween('tanggal', [$from, $to])
-            ->sum('pendapatan');
-
-        // Pendapatan dari pesanan selesai
-        $pesanan = Pesanan::whereNotNull('tanggalterkirim')
-            ->whereBetween('tanggalterkirim', [$from, $to])
-            ->sum('pendapatan');
-
-        // Pendapatan dari servis selesai (tanggalterkirim != sentinel 1970-01-01)
-        $servis = Servis::where('tanggalterkirim', '!=', '1970-01-01 00:00:00')
-            ->whereNotNull('tanggalterkirim')
-            ->whereBetween('tanggalterkirim', [$from, $to])
-            ->sum('pendapatan');
-
-        return (int) ($barang + $pesanan + $servis);
-    }
-
-    /**
      * Cari bulan/kuartal dengan pendapatan tertinggi (rolling 2 tahun).
+     * Dioptimasi: 3 query total (1 per tabel) dengan GROUP BY bulan.
      */
-    private function getPeakPeriod(): array
+    private function getPeakPeriod(Carbon $nowLocal): array
     {
-        $months      = [];
-        $startOfScan = Carbon::now()->subYears(2)->startOfMonth();
+        $scanStart = $nowLocal->copy()->subYears(2)->startOfMonth()->setTimezone('UTC')->toDateTimeString();
+        $scanEnd   = $nowLocal->copy()->endOfMonth()->setTimezone('UTC')->toDateTimeString();
+
+        // Barang revenue per bulan (1 query)
+        $barangMonthly = DB::table('aktivitas_barang')
+            ->where('jenis', 'jual')
+            ->whereBetween('tanggal', [$scanStart, $scanEnd])
+            ->selectRaw("EXTRACT(YEAR FROM tanggal AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') as yr,
+                          EXTRACT(MONTH FROM tanggal AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') as mo,
+                          COALESCE(SUM(pendapatan), 0) as rev")
+            ->groupByRaw("yr, mo")
+            ->get()
+            ->keyBy(fn($r) => $r->yr . '-' . $r->mo);
+
+        // Pesanan revenue per bulan (1 query)
+        $pesananMonthly = DB::table('pesanan')
+            ->whereNotNull('tanggalterkirim')
+            ->whereBetween('tanggalterkirim', [$scanStart, $scanEnd])
+            ->selectRaw("EXTRACT(YEAR FROM tanggalterkirim AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') as yr,
+                          EXTRACT(MONTH FROM tanggalterkirim AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') as mo,
+                          COALESCE(SUM(pendapatan), 0) as rev")
+            ->groupByRaw("yr, mo")
+            ->get()
+            ->keyBy(fn($r) => $r->yr . '-' . $r->mo);
+
+        // Servis revenue per bulan (1 query)
+        $servisMonthly = DB::table('servis')
+            ->where('tanggalterkirim', '!=', '1970-01-01 00:00:00')
+            ->whereNotNull('tanggalterkirim')
+            ->whereBetween('tanggalterkirim', [$scanStart, $scanEnd])
+            ->selectRaw("EXTRACT(YEAR FROM tanggalterkirim AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') as yr,
+                          EXTRACT(MONTH FROM tanggalterkirim AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') as mo,
+                          COALESCE(SUM(pendapatan), 0) as rev")
+            ->groupByRaw("yr, mo")
+            ->get()
+            ->keyBy(fn($r) => $r->yr . '-' . $r->mo);
+
+        // Gabungkan dan cari bulan puncak
+        $startOfScan = $nowLocal->copy()->subYears(2)->startOfMonth();
+        $bestRevenue = 0;
+        $bestYear    = $startOfScan->year;
+        $bestMonth   = $startOfScan->month;
 
         for ($i = 0; $i < 24; $i++) {
-            $monthStart = $startOfScan->copy()->addMonths($i);
-            $monthEnd   = $monthStart->copy()->endOfMonth();
-            $revenue    = $this->getTotalRevenue($monthStart, $monthEnd);
+            $m = $startOfScan->copy()->addMonths($i);
+            $key = ((int) $m->year) . '-' . ((int) $m->month);
 
-            $months[] = [
-                'year'    => $monthStart->year,
-                'month'   => $monthStart->month,
-                'revenue' => $revenue,
-            ];
+            $rev = (int)($barangMonthly->get($key)->rev ?? 0)
+                 + (int)($pesananMonthly->get($key)->rev ?? 0)
+                 + (int)($servisMonthly->get($key)->rev ?? 0);
+
+            if ($rev > $bestRevenue) {
+                $bestRevenue = $rev;
+                $bestYear    = $m->year;
+                $bestMonth   = $m->month;
+            }
         }
 
-        // Cari bulan tertinggi, mapping ke kuartal
-        $peak    = collect($months)->sortByDesc('revenue')->first();
-        $quarter = 'Q' . ceil($peak['month'] / 3) . " '" . substr($peak['year'], 2);
+        $quarter = 'Q' . ceil($bestMonth / 3) . " '" . substr($bestYear, 2);
 
         return [
             'label'   => $quarter,
-            'revenue' => $peak['revenue'],
+            'revenue' => $bestRevenue,
         ];
     }
 
@@ -163,20 +204,69 @@ class GrafikController extends Controller
 
     /**
      * Kembalikan array data per-periode untuk bar chart Revenue Trend.
-     * Format: [ ['label' => 'JAN', 'revenue' => 850000000, 'height_percent' => 60], ... ]
+     * Dioptimasi: 3 query total (1 per tabel) untuk semua bucket sekaligus.
      */
     private function getRevenueTrend(string $period): array
     {
         $buckets = $this->buildTimeBuckets($period);
 
+        if (empty($buckets)) {
+            return [
+                'buckets'      => [],
+                'maxRevenue'   => 0,
+                'yAxisLabels'  => $this->buildYAxisLabels(0),
+                'trendPercent' => null,
+            ];
+        }
+
+        // Ambil rentang waktu terluar
+        $globalFrom = $buckets[0]['from'];
+        $globalTo   = $buckets[count($buckets) - 1]['to'];
+
+        // Bulk query: ambil semua data dalam 1 rentang, lalu distribusikan ke bucket di PHP
+        $barangRows = DB::table('aktivitas_barang')
+            ->where('jenis', 'jual')
+            ->whereBetween('tanggal', [$globalFrom, $globalTo])
+            ->select('tanggal', 'pendapatan')
+            ->get();
+
+        $pesananRows = DB::table('pesanan')
+            ->whereNotNull('tanggalterkirim')
+            ->whereBetween('tanggalterkirim', [$globalFrom, $globalTo])
+            ->select('tanggalterkirim', 'pendapatan')
+            ->get();
+
+        $servisRows = DB::table('servis')
+            ->where('tanggalterkirim', '!=', '1970-01-01 00:00:00')
+            ->whereNotNull('tanggalterkirim')
+            ->whereBetween('tanggalterkirim', [$globalFrom, $globalTo])
+            ->select('tanggalterkirim', 'pendapatan')
+            ->get();
+
+        // Distribusikan ke bucket
         $maxRevenue = 0;
         foreach ($buckets as &$bucket) {
-            $bucket['revenue'] = $this->getTotalRevenue(
-                Carbon::parse($bucket['from']),
-                Carbon::parse($bucket['to'])
-            );
-            if ($bucket['revenue'] > $maxRevenue) {
-                $maxRevenue = $bucket['revenue'];
+            $revenue = 0;
+
+            foreach ($barangRows as $row) {
+                if ($row->tanggal >= $bucket['from'] && $row->tanggal <= $bucket['to']) {
+                    $revenue += (int) $row->pendapatan;
+                }
+            }
+            foreach ($pesananRows as $row) {
+                if ($row->tanggalterkirim >= $bucket['from'] && $row->tanggalterkirim <= $bucket['to']) {
+                    $revenue += (int) $row->pendapatan;
+                }
+            }
+            foreach ($servisRows as $row) {
+                if ($row->tanggalterkirim >= $bucket['from'] && $row->tanggalterkirim <= $bucket['to']) {
+                    $revenue += (int) $row->pendapatan;
+                }
+            }
+
+            $bucket['revenue'] = $revenue;
+            if ($revenue > $maxRevenue) {
+                $maxRevenue = $revenue;
             }
         }
         unset($bucket);
@@ -189,20 +279,8 @@ class GrafikController extends Controller
         }
         unset($bucket);
 
-        // ── Trend: selisih persentase bucket pertama vs terakhir ──────────
-        $trendPercent = null; // null = tidak ditampilkan (misal 1D)
-        if ($period !== '1D' && count($buckets) >= 2) {
-            $firstRevenue = $buckets[0]['revenue'];
-            $lastRevenue  = $buckets[count($buckets) - 1]['revenue'];
-            if ($firstRevenue > 0) {
-                $trendPercent = round((($lastRevenue - $firstRevenue) / $firstRevenue) * 100, 2);
-                $trendPercent = max(-200000, min(200000, $trendPercent));
-            } elseif ($lastRevenue > 0) {
-                $trendPercent = 100.0;
-            } else {
-                $trendPercent = 0;
-            }
-        }
+        // ── Trend ──
+        $trendPercent = $this->calculateTrendPercent($period, $buckets, 'revenue');
 
         return [
             'buckets'      => $buckets,
@@ -221,95 +299,95 @@ class GrafikController extends Controller
      */
     private function buildTimeBuckets(string $period): array
     {
-        $now     = Carbon::now();
-        $buckets = [];
+        $nowLocal = Carbon::now('Asia/Jakarta');
+        $buckets  = [];
 
         switch ($period) {
             case '1D':
                 for ($h = 7; $h <= 17; $h++) {
-                    $from = $now->copy()->startOfDay()->addHours($h);
-                    $to   = $from->copy()->addHour()->subSecond();
+                    $fromLocal = $nowLocal->copy()->startOfDay()->addHours($h);
+                    $toLocal   = $fromLocal->copy()->addHour()->subSecond();
                     $buckets[] = [
-                        'label' => $from->format('H:i'),
-                        'from'  => $from->toDateTimeString(),
-                        'to'    => $to->toDateTimeString(),
+                        'label' => $fromLocal->format('H:i'),
+                        'from'  => $fromLocal->copy()->setTimezone('UTC')->toDateTimeString(),
+                        'to'    => $toLocal->copy()->setTimezone('UTC')->toDateTimeString(),
                     ];
                 }
                 break;
 
             case '1W':
                 for ($d = 6; $d >= 0; $d--) {
-                    $from = $now->copy()->subDays($d)->startOfDay();
-                    $to   = $from->copy()->endOfDay();
+                    $fromLocal = $nowLocal->copy()->subDays($d)->startOfDay();
+                    $toLocal   = $fromLocal->copy()->endOfDay();
                     $buckets[] = [
-                        'label' => $from->format('D'),
-                        'from'  => $from->toDateTimeString(),
-                        'to'    => $to->toDateTimeString(),
+                        'label' => $fromLocal->format('D'),
+                        'from'  => $fromLocal->copy()->setTimezone('UTC')->toDateTimeString(),
+                        'to'    => $toLocal->copy()->setTimezone('UTC')->toDateTimeString(),
                     ];
                 }
                 break;
 
             case '1M':
                 for ($d = 29; $d >= 0; $d--) {
-                    $from = $now->copy()->subDays($d)->startOfDay();
-                    $to   = $from->copy()->endOfDay();
+                    $fromLocal = $nowLocal->copy()->subDays($d)->startOfDay();
+                    $toLocal   = $fromLocal->copy()->endOfDay();
                     $buckets[] = [
-                        'label' => $from->format('d'),
-                        'from'  => $from->toDateTimeString(),
-                        'to'    => $to->toDateTimeString(),
+                        'label' => $fromLocal->format('d'),
+                        'from'  => $fromLocal->copy()->setTimezone('UTC')->toDateTimeString(),
+                        'to'    => $toLocal->copy()->setTimezone('UTC')->toDateTimeString(),
                     ];
                 }
                 break;
 
             case '3M':
-                $start = $now->copy()->subMonths(3)->startOfWeek();
-                $week  = $start->copy();
-                while ($week->lte($now)) {
-                    $from = $week->copy()->startOfWeek();
-                    $to   = $week->copy()->endOfWeek();
+                $startLocal = $nowLocal->copy()->subMonths(3)->startOfWeek();
+                $weekLocal  = $startLocal->copy();
+                while ($weekLocal->lte($nowLocal)) {
+                    $fromLocal = $weekLocal->copy()->startOfWeek();
+                    $toLocal   = $weekLocal->copy()->endOfWeek();
                     $buckets[] = [
-                        'label' => $from->format('d/M'),
-                        'from'  => $from->toDateTimeString(),
-                        'to'    => $to->toDateTimeString(),
+                        'label' => $fromLocal->format('d/M'),
+                        'from'  => $fromLocal->copy()->setTimezone('UTC')->toDateTimeString(),
+                        'to'    => $toLocal->copy()->setTimezone('UTC')->toDateTimeString(),
                     ];
-                    $week->addWeek();
+                    $weekLocal->addWeek();
                 }
                 break;
 
             case '1Y':
                 for ($m = 12; $m >= 0; $m--) {
-                    $from = $now->copy()->subMonths($m)->startOfMonth();
-                    $to   = $from->copy()->endOfMonth();
+                    $fromLocal = $nowLocal->copy()->subMonths($m)->startOfMonth();
+                    $toLocal   = $fromLocal->copy()->endOfMonth();
                     $buckets[] = [
-                        'label' => strtoupper($from->format('M')),
-                        'from'  => $from->toDateTimeString(),
-                        'to'    => $to->toDateTimeString(),
+                        'label' => strtoupper($fromLocal->format('M')),
+                        'from'  => $fromLocal->copy()->setTimezone('UTC')->toDateTimeString(),
+                        'to'    => $toLocal->copy()->setTimezone('UTC')->toDateTimeString(),
                     ];
                 }
                 break;
 
             case '5Y':
                 for ($y = 5; $y >= 0; $y--) {
-                    $from = $now->copy()->subYears($y)->startOfYear();
-                    $to   = $from->copy()->endOfYear();
+                    $fromLocal = $nowLocal->copy()->subYears($y)->startOfYear();
+                    $toLocal   = $fromLocal->copy()->endOfYear();
                     $buckets[] = [
-                        'label' => $from->format('Y'),
-                        'from'  => $from->toDateTimeString(),
-                        'to'    => $to->toDateTimeString(),
+                        'label' => $fromLocal->format('Y'),
+                        'from'  => $fromLocal->copy()->setTimezone('UTC')->toDateTimeString(),
+                        'to'    => $toLocal->copy()->setTimezone('UTC')->toDateTimeString(),
                     ];
                 }
                 break;
 
             // YTD (default)
             default:
-                $startOfYear = Carbon::create($now->year, 1, 1)->startOfMonth();
-                for ($m = 0; $m < $now->month; $m++) {
-                    $from = $startOfYear->copy()->addMonths($m);
-                    $to   = $from->copy()->endOfMonth();
+                $startOfYearLocal = Carbon::create($nowLocal->year, 1, 1, 0, 0, 0, 'Asia/Jakarta')->startOfMonth();
+                for ($m = 0; $m < $nowLocal->month; $m++) {
+                    $fromLocal = $startOfYearLocal->copy()->addMonths($m);
+                    $toLocal   = $fromLocal->copy()->endOfMonth();
                     $buckets[] = [
-                        'label' => strtoupper($from->format('M')),
-                        'from'  => $from->toDateTimeString(),
-                        'to'    => $to->toDateTimeString(),
+                        'label' => strtoupper($fromLocal->format('M')),
+                        'from'  => $fromLocal->copy()->setTimezone('UTC')->toDateTimeString(),
+                        'to'    => $toLocal->copy()->setTimezone('UTC')->toDateTimeString(),
                     ];
                 }
                 break;
@@ -442,17 +520,39 @@ class GrafikController extends Controller
 
     /**
      * Trend jumlah pesanan per-periode (count, bukan revenue).
+     * Dioptimasi: 1 query untuk semua bucket.
      */
     private function getPesananTrend(string $period): array
     {
         $buckets = $this->buildTimeBuckets($period);
-        $max     = 0;
 
+        if (empty($buckets)) {
+            return [
+                'buckets'      => [],
+                'maxCount'     => 0,
+                'yAxisLabels'  => $this->buildCountYAxis(0),
+                'trendPercent' => null,
+            ];
+        }
+
+        $globalFrom = $buckets[0]['from'];
+        $globalTo   = $buckets[count($buckets) - 1]['to'];
+
+        // 1 query: ambil semua tanggal pesanan selesai dalam rentang
+        $rows = DB::table('pesanan')
+            ->whereNotNull('tanggalterkirim')
+            ->whereBetween('tanggalterkirim', [$globalFrom, $globalTo])
+            ->select('tanggalterkirim')
+            ->get();
+
+        $max = 0;
         foreach ($buckets as &$bucket) {
-            $count = Pesanan::whereBetween('tanggalpemesanan', [
-                $bucket['from'], $bucket['to'],
-            ])->count();
-
+            $count = 0;
+            foreach ($rows as $row) {
+                if ($row->tanggalterkirim >= $bucket['from'] && $row->tanggalterkirim <= $bucket['to']) {
+                    $count++;
+                }
+            }
             $bucket['count'] = $count;
             if ($count > $max) $max = $count;
         }
@@ -465,20 +565,7 @@ class GrafikController extends Controller
         }
         unset($bucket);
 
-        // ── Trend: selisih persentase bucket pertama vs terakhir ──────────
-        $trendPercent = null;
-        if ($period !== '1D' && count($buckets) >= 2) {
-            $firstCount = $buckets[0]['count'];
-            $lastCount  = $buckets[count($buckets) - 1]['count'];
-            if ($firstCount > 0) {
-                $trendPercent = round((($lastCount - $firstCount) / $firstCount) * 100, 2);
-                $trendPercent = max(-200000, min(200000, $trendPercent));
-            } elseif ($lastCount > 0) {
-                $trendPercent = 100.0;
-            } else {
-                $trendPercent = 0;
-            }
-        }
+        $trendPercent = $this->calculateTrendPercent($period, $buckets, 'count');
 
         return [
             'buckets'      => $buckets,
@@ -518,17 +605,40 @@ class GrafikController extends Controller
 
     /**
      * Trend jumlah servis per-periode (count).
+     * Dioptimasi: 1 query untuk semua bucket.
      */
     private function getServisTrend(string $period): array
     {
         $buckets = $this->buildTimeBuckets($period);
-        $max     = 0;
 
+        if (empty($buckets)) {
+            return [
+                'buckets'      => [],
+                'maxCount'     => 0,
+                'yAxisLabels'  => $this->buildCountYAxis(0),
+                'trendPercent' => null,
+            ];
+        }
+
+        $globalFrom = $buckets[0]['from'];
+        $globalTo   = $buckets[count($buckets) - 1]['to'];
+
+        // 1 query: ambil semua tanggal servis selesai dalam rentang
+        $rows = DB::table('servis')
+            ->where('tanggalterkirim', '!=', '1970-01-01 00:00:00')
+            ->whereNotNull('tanggalterkirim')
+            ->whereBetween('tanggalterkirim', [$globalFrom, $globalTo])
+            ->select('tanggalterkirim')
+            ->get();
+
+        $max = 0;
         foreach ($buckets as &$bucket) {
-            $count = Servis::whereBetween('tanggalpemesanan', [
-                $bucket['from'], $bucket['to'],
-            ])->count();
-
+            $count = 0;
+            foreach ($rows as $row) {
+                if ($row->tanggalterkirim >= $bucket['from'] && $row->tanggalterkirim <= $bucket['to']) {
+                    $count++;
+                }
+            }
             $bucket['count'] = $count;
             if ($count > $max) $max = $count;
         }
@@ -541,20 +651,7 @@ class GrafikController extends Controller
         }
         unset($bucket);
 
-        // ── Trend: selisih persentase bucket pertama vs terakhir ──────────
-        $trendPercent = null;
-        if ($period !== '1D' && count($buckets) >= 2) {
-            $firstCount = $buckets[0]['count'];
-            $lastCount  = $buckets[count($buckets) - 1]['count'];
-            if ($firstCount > 0) {
-                $trendPercent = round((($lastCount - $firstCount) / $firstCount) * 100, 2);
-                $trendPercent = max(-200000, min(200000, $trendPercent));
-            } elseif ($lastCount > 0) {
-                $trendPercent = 100.0;
-            } else {
-                $trendPercent = 0;
-            }
-        }
+        $trendPercent = $this->calculateTrendPercent($period, $buckets, 'count');
 
         return [
             'buckets'      => $buckets,
@@ -588,9 +685,58 @@ class GrafikController extends Controller
         })->toArray();
     }
 
-    // =========================================================================
-    //  HELPERS
-    // =========================================================================
+    /**
+     * Hitung persentase trend.
+     * Untuk 1D: membandingkan jam awal dengan jam saat ini (maksimal 100000%).
+     * Untuk periode lain: membandingkan bucket pertama dengan bucket terakhir.
+     */
+    private function calculateTrendPercent(string $period, array $buckets, string $valueKey = 'revenue'): ?float
+    {
+        if (count($buckets) < 2) {
+            return null;
+        }
+
+        if ($period === '1D') {
+            $nowLocal = Carbon::now('Asia/Jakarta');
+            $currentHour = $nowLocal->hour;
+
+            // Batasi jam saat ini dalam rentang operasional (7 s.d. 17)
+            $currHour = max(7, min(17, $currentHour));
+
+            $currIdx = $currHour - 7;
+            $firstIdx = 0;
+
+            // Jika masih jam 7 pagi, perbandingan dengan jam awal adalah 0%
+            if ($currIdx === $firstIdx) {
+                return 0.0;
+            }
+
+            $currVal  = isset($buckets[$currIdx]) ? ($buckets[$currIdx][$valueKey] ?? 0) : 0;
+            $firstVal = isset($buckets[$firstIdx]) ? ($buckets[$firstIdx][$valueKey] ?? 0) : 0;
+
+            if ($firstVal > 0) {
+                $percent = (($currVal - $firstVal) / $firstVal) * 100;
+                return round(max(-100000, min(100000, $percent)), 2);
+            } elseif ($currVal > 0) {
+                return 100.0;
+            } else {
+                return 0.0;
+            }
+        }
+
+        // Untuk periode lainnya (1W, 1M, YTD, dsb.)
+        $firstVal = $buckets[0][$valueKey] ?? 0;
+        $lastVal  = $buckets[count($buckets) - 1][$valueKey] ?? 0;
+
+        if ($firstVal > 0) {
+            $percent = (($lastVal - $firstVal) / $firstVal) * 100;
+            return round(max(-100000, min(100000, $percent)), 2);
+        } elseif ($lastVal > 0) {
+            return 100.0;
+        } else {
+            return 0.0;
+        }
+    }
 
     /** Buat 5 label Y-axis untuk grafik berbasis count (bukan rupiah). */
     private function buildCountYAxis(int $max): array
