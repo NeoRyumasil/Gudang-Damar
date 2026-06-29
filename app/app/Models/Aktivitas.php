@@ -21,7 +21,7 @@ class Aktivitas
 
     protected static function fromPesanan(array $filters = []): Collection
     {
-        $query = Pesanan::query()->with('barang')->orderByDesc('tanggalpemesanan');
+        $query = Pesanan::query()->doesntHave('servis')->with('barang')->orderByDesc('tanggalpemesanan');
 
         if (!empty($filters['search'])) {
             $query->where('nama_barang', 'like', '%' . $filters['search'] . '%');
@@ -175,14 +175,14 @@ class Aktivitas
      */
     public static function stats(): array
     {
-        $totalPesanan = Pesanan::count();
+        $totalPesanan = Pesanan::doesntHave('servis')->count();
         $totalServis  = Servis::count();
         $totalBarang  = Barang::sum('jumlah') ?? 0;
 
         $totalLogBarang = AktivitasBarang::count();
 
         // ✅ FIX: pendapatan pesanan - filter pesanan yang sudah selesai (tanggalterkirim NOT NULL)
-        $pendapatanPesanan = Pesanan::whereNotNull('tanggalterkirim')->sum('pendapatan') ?? 0;
+        $pendapatanPesanan = Pesanan::doesntHave('servis')->whereNotNull('tanggalterkirim')->sum('pendapatan') ?? 0;
 
         // ✅ FIX: pendapatan servis - exclude sentinel date 1970-01-01 yang artinya belum selesai
         $pendapatanServis = Servis::whereNotNull('pendapatan')

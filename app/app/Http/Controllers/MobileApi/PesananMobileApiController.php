@@ -12,7 +12,7 @@ class PesananMobileApiController extends Controller
 {
     public function index(Request $request)
     {
-        $pesanan = Pesanan::orderBy('id_pesanan', 'desc')->get();
+        $pesanan = Pesanan::doesntHave('servis')->orderBy('id_pesanan', 'desc')->get();
         return response()->json([
             'message' => 'Success',
             'data' => $pesanan

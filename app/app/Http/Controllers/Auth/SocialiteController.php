@@ -26,7 +26,14 @@ class SocialiteController extends Controller
     public function callback(): RedirectResponse
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $driver = Socialite::driver('google')->stateless();
+
+            // ✨ FIX cURL error 60 (Windows SSL Cert): Disable SSL verification in local development
+            if (config('app.env') === 'local') {
+                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+            }
+
+            $googleUser = $driver->user();
         } catch (\Exception $e) {
             Log::error('Google OAuth callback failed', [
                 'exception' => get_class($e),
