@@ -18,9 +18,33 @@ class GrafikController extends Controller
      * Halaman utama grafik/analytics.
      * Menyediakan semua data yang dibutuhkan index.vue
      */
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $period = $request->input('period', 'YTD'); // 1D | 1W | 1M | 3M | YTD | 1Y | 5Y
+
+        if ($request->wantsJson()) {
+            $type = $request->input('type');
+            if ($type === 'revenue') {
+                return response()->json([
+                    'revenueTrend' => $this->getRevenueTrend($period),
+                ]);
+            } elseif ($type === 'pesanan') {
+                return response()->json([
+                    'pesananTrend' => $this->getPesananTrend($period),
+                ]);
+            } elseif ($type === 'servis') {
+                return response()->json([
+                    'servisTrend' => $this->getServisTrend($period),
+                ]);
+            }
+
+            return response()->json([
+                'revenueTrend' => $this->getRevenueTrend($period),
+                'pesananTrend' => $this->getPesananTrend($period),
+                'servisTrend'  => $this->getServisTrend($period),
+                'activePeriod' => $period,
+            ]);
+        }
 
         return Inertia::render('grafik/index', [
             // ── Summary Cards ──────────────────────────────────────────────

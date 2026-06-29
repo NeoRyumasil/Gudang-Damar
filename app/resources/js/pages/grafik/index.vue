@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted } from 'vue'
 import { router,Link } from '@inertiajs/vue3'
 import Navbar from '@/components/Navbar.vue';
 defineOptions({ layout: null })
@@ -19,6 +20,120 @@ const props = defineProps({
 
 const periods = ['1D', '1W', '1M', '3M', 'YTD', '1Y', '5Y']
 
+// Local reactive states for independent chart periods
+const activeRevenuePeriod = ref(props.activePeriod)
+const activePesananPeriod = ref(props.activePeriod)
+const activeServisPeriod = ref(props.activePeriod)
+
+const revenueTrend = ref(props.revenueTrend)
+const pesananTrend = ref(props.pesananTrend)
+const servisTrend = ref(props.servisTrend)
+
+// Client-Side Caches for each chart type
+const revenueCache = ref({ [props.activePeriod]: props.revenueTrend })
+const pesananCache = ref({ [props.activePeriod]: props.pesananTrend })
+const servisCache = ref({ [props.activePeriod]: props.servisTrend })
+
+// ── Independent Change Period Handlers ──
+
+async function changeRevenuePeriod(period) {
+  if (revenueCache.value[period]) {
+    activeRevenuePeriod.value = period
+    revenueTrend.value = revenueCache.value[period]
+    return
+  }
+  try {
+    const response = await fetch(`/grafik?period=${period}&type=revenue`, {
+      headers: { 'Accept': 'application/json' }
+    })
+    const data = await response.json()
+    revenueCache.value[period] = data.revenueTrend
+    activeRevenuePeriod.value = period
+    revenueTrend.value = data.revenueTrend
+  } catch (error) {
+    console.error('Gagal memuat data grafik pendapatan:', error)
+  }
+}
+
+async function changePesananPeriod(period) {
+  if (pesananCache.value[period]) {
+    activePesananPeriod.value = period
+    pesananTrend.value = pesananCache.value[period]
+    return
+  }
+  try {
+    const response = await fetch(`/grafik?period=${period}&type=pesanan`, {
+      headers: { 'Accept': 'application/json' }
+    })
+    const data = await response.json()
+    pesananCache.value[period] = data.pesananTrend
+    activePesananPeriod.value = period
+    pesananTrend.value = data.pesananTrend
+  } catch (error) {
+    console.error('Gagal memuat data grafik pesanan:', error)
+  }
+}
+
+async function changeServisPeriod(period) {
+  if (servisCache.value[period]) {
+    activeServisPeriod.value = period
+    servisTrend.value = servisCache.value[period]
+    return
+  }
+  try {
+    const response = await fetch(`/grafik?period=${period}&type=servis`, {
+      headers: { 'Accept': 'application/json' }
+    })
+    const data = await response.json()
+    servisCache.value[period] = data.servisTrend
+    activeServisPeriod.value = period
+    servisTrend.value = data.servisTrend
+  } catch (error) {
+    console.error('Gagal memuat data grafik servis:', error)
+  }
+}
+
+// Prefetch: Muat sisa timeframe secara bergiliran di background agar ketika diklik instan
+onMounted(() => {
+  const otherPeriods = periods.filter(p => p !== props.activePeriod)
+  prefetchAll(otherPeriods)
+})
+
+async function prefetchAll(pList) {
+  for (const period of pList) {
+    // Prefetch Revenue
+    if (!revenueCache.value[period]) {
+      try {
+        const response = await fetch(`/grafik?period=${period}&type=revenue`, {
+          headers: { 'Accept': 'application/json' }
+        })
+        const data = await response.json()
+        revenueCache.value[period] = data.revenueTrend
+      } catch (e) {}
+    }
+    // Prefetch Pesanan
+    if (!pesananCache.value[period]) {
+      try {
+        const response = await fetch(`/grafik?period=${period}&type=pesanan`, {
+          headers: { 'Accept': 'application/json' }
+        })
+        const data = await response.json()
+        pesananCache.value[period] = data.pesananTrend
+      } catch (e) {}
+    }
+    // Prefetch Servis
+    if (!servisCache.value[period]) {
+      try {
+        const response = await fetch(`/grafik?period=${period}&type=servis`, {
+          headers: { 'Accept': 'application/json' }
+        })
+        const data = await response.json()
+        servisCache.value[period] = data.servisTrend
+      } catch (e) {}
+    }
+  }
+}
+
 // Warna tetap untuk bar revenue by category
 const categoryColorMap = {
   'Pesanan': '#2563eb',   // biru
@@ -29,15 +144,6 @@ const defaultCategoryColor = '#64748b' // fallback abu
 
 function getCategoryColor(kategori) {
   return categoryColorMap[kategori] || defaultCategoryColor
-}
-
-// Ganti period → Inertia request baru ke /grafik?period=X
-function changePeriod(period) {
-  router.get('/grafik', { period }, {
-    preserveState:  true,
-    preserveScroll: true,
-    replace:        true,
-  })
 }
 
 // Menampilkan nominal rupiah utuh tanpa penyingkatan
@@ -220,12 +326,12 @@ function cardBorder(val) {
               <button
                 v-for="p in periods"
                 :key="p"
-                @click="changePeriod(p)"
+                @click="changeRevenuePeriod(p)"
                 class="px-3 py-1 text-xs font-medium rounded-DEFAULT transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 whitespace-nowrap"
-                :class="activePeriod === p
+                :class="activeRevenuePeriod === p
                   ? 'font-bold shadow-sm bg-[#FFFFFF]'
                   : 'hover:text-green-600 hover:bg-[#F8F9FA]'"
-                :style="activePeriod === p ? { color: '#16a34a', boxShadow: '0 0 0 1px #86efac' } : { color: '#64748B' }"
+                :style="activeRevenuePeriod === p ? { color: '#16a34a', boxShadow: '0 0 0 1px #86efac' } : { color: '#64748B' }"
               >{{ p }}</button>
             </div>
           </div>
@@ -368,12 +474,12 @@ function cardBorder(val) {
               <div class="flex rounded-DEFAULT p-1 overflow-x-auto no-scrollbar gap-1" style="background-color: #ECEFF1;">
                 <button
                   v-for="p in periods" :key="p"
-                  @click="changePeriod(p)"
+                  @click="changePesananPeriod(p)"
                   class="px-2 py-1 text-[10px] font-medium rounded-DEFAULT transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 whitespace-nowrap"
-                  :class="activePeriod === p
+                  :class="activePesananPeriod === p
                     ? 'font-bold shadow-sm bg-[#FFFFFF]'
                     : 'hover:text-blue-600 hover:bg-[#F8F9FA]'"
-                  :style="activePeriod === p ? { color: '#2563eb', boxShadow: '0 0 0 1px #93c5fd' } : { color: '#64748B' }"
+                  :style="activePesananPeriod === p ? { color: '#2563eb', boxShadow: '0 0 0 1px #93c5fd' } : { color: '#64748B' }"
                 >{{ p }}</button>
               </div>
             </div>
@@ -467,12 +573,12 @@ function cardBorder(val) {
               <div class="flex rounded-DEFAULT p-1 overflow-x-auto no-scrollbar gap-1" style="background-color: #ECEFF1;">
                 <button
                   v-for="p in periods" :key="p"
-                  @click="changePeriod(p)"
+                  @click="changeServisPeriod(p)"
                   class="px-2 py-1 text-[10px] font-medium rounded-DEFAULT transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 whitespace-nowrap"
-                  :class="activePeriod === p
+                  :class="activeServisPeriod === p
                     ? 'font-bold shadow-sm bg-[#FFFFFF]'
                     : 'hover:text-purple-600 hover:bg-[#F8F9FA]'"
-                  :style="activePeriod === p ? { color: '#7c3aed', boxShadow: '0 0 0 1px #c4b5fd' } : { color: '#64748B' }"
+                  :style="activeServisPeriod === p ? { color: '#7c3aed', boxShadow: '0 0 0 1px #c4b5fd' } : { color: '#64748B' }"
                 >{{ p }}</button>
               </div>
             </div>
