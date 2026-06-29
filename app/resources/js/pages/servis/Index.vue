@@ -15,6 +15,7 @@ const props = defineProps({
 const showModal  = ref(false)
 const isEditing  = ref(false)
 const editId     = ref(null)
+const isSubmitting = ref(false)
 
 const form = reactive({
   nama_barang:   '',
@@ -62,13 +63,28 @@ const closeModal = () => {
 
 // ── Submit tambah / update ───────────────────────────────────
 const submitForm = () => {
+  if (isSubmitting.value) return
+  isSubmitting.value = true
+
   if (isEditing.value) {
     router.put(`/servis/${editId.value}`, { ...form }, {
-      onSuccess: () => closeModal()
+      onSuccess: () => {
+        closeModal()
+        isSubmitting.value = false
+      },
+      onError: () => {
+        isSubmitting.value = false
+      }
     })
   } else {
     router.post('/servis', { ...form }, {
-      onSuccess: () => closeModal()
+      onSuccess: () => {
+        closeModal()
+        isSubmitting.value = false
+      },
+      onError: () => {
+        isSubmitting.value = false
+      }
     })
   }
 }
@@ -295,7 +311,7 @@ const totalPendapatan = computed(() => {
         <div class="modal-card" @click.stop>
           <div class="modal-header">
             <h2>{{ isEditing ? 'Edit Servis' : 'Tambah Servis Baru' }}</h2>
-            <button class="modal-close" @click="closeModal">
+            <button class="modal-close" @click="closeModal" :disabled="isSubmitting">
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
@@ -309,6 +325,7 @@ const totalPendapatan = computed(() => {
                 type="text"
                 required
                 placeholder="Masukkan nama barang"
+                :disabled="isSubmitting"
               />
             </div>
 
@@ -321,6 +338,7 @@ const totalPendapatan = computed(() => {
                   type="text"
                   required
                   placeholder="Contoh: Kayu, Besi, Plastik"
+                  :disabled="isSubmitting"
                 />
               </div>
               <div class="form-group">
@@ -333,6 +351,7 @@ const totalPendapatan = computed(() => {
                   type="number"
                   min="1"
                   placeholder="Default: 1"
+                  :disabled="isSubmitting"
                 />
               </div>
             </div>
@@ -349,6 +368,7 @@ const totalPendapatan = computed(() => {
                   type="number"
                   min="1"
                   placeholder="Kosongkan jika tidak ada"
+                  :disabled="isSubmitting"
                 />
               </div>
               <div class="form-group">
@@ -361,6 +381,7 @@ const totalPendapatan = computed(() => {
                   type="number"
                   min="0"
                   placeholder="Contoh: 50000"
+                  :disabled="isSubmitting"
                 />
               </div>
             </div>
@@ -377,15 +398,16 @@ const totalPendapatan = computed(() => {
                 required
                 placeholder="Tambahkan catatan servis, kerusakan, atau permintaan khusus..."
                 maxlength="1000"
+                :disabled="isSubmitting"
               ></textarea>
               <p class="char-counter">{{ form.catatan.length }} / 1000 karakter</p>
             </div>
 
             <div class="modal-actions">
-              <button type="button" class="btn-batal" @click="closeModal">Batal</button>
-              <button type="submit" class="btn-simpan">
-                <span class="material-symbols-outlined">{{ isEditing ? 'save' : 'add' }}</span>
-                {{ isEditing ? 'Simpan Perubahan' : 'Tambah Servis' }}
+              <button type="button" class="btn-batal" @click="closeModal" :disabled="isSubmitting">Batal</button>
+              <button type="submit" class="btn-simpan" :disabled="isSubmitting">
+                <span class="material-symbols-outlined">{{ isSubmitting ? 'hourglass_empty' : (isEditing ? 'save' : 'add') }}</span>
+                {{ isSubmitting ? 'Menyimpan...' : (isEditing ? 'Simpan Perubahan' : 'Tambah Servis') }}
               </button>
             </div>
           </form>

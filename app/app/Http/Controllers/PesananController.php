@@ -12,7 +12,7 @@ class PesananController extends Controller
     public function index()
     {
         return Inertia::render('pesanan/Index', [
-            'pesananList' => Pesanan::orderBy('tanggalpemesanan', 'desc')->get(),
+            'pesananList' => Pesanan::doesntHave('servis')->orderBy('tanggalpemesanan', 'desc')->get(),
         ]);
     }
 
