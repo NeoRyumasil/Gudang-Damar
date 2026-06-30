@@ -9,6 +9,7 @@ import '../widgets/user_profile_avatar_button.dart';
 import 'barang/barang_list_screen.dart';
 import 'pesanan/pesanan_list_screen.dart';
 import 'servis/servis_list_screen.dart';
+import 'grafik_aktivitas_screen.dart';
 
 class RiwayatAktivitasScreen extends StatefulWidget {
   const RiwayatAktivitasScreen({super.key});
@@ -361,29 +362,44 @@ class _RiwayatAktivitasScreenState extends State<RiwayatAktivitasScreen> {
                             child: const Icon(Icons.tune, color: Color(0xFF2563EB), size: 18),
                           ),
                         ),
-                        TextButton.icon(
-                        onPressed: () {
-                          // Aksi navigasi atau membuka chart modal
-                        },
-                        icon: const Icon(Icons.bar_chart_rounded, color: Colors.black, size: 20),
-                        label: const Text(
-                          'Grafik',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                        const SizedBox(width: 6),
+                        Expanded(
+                          flex: 3,
+                          child: TextButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const GrafikAktivitasScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.bar_chart_rounded,
+                              color: Colors.black,
+                              size: 20,
+                            ),
+                            label: const Text(
+                              'Grafik',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              minimumSize: const Size(0, 40),
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(40),
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: const BorderSide(color: Color(0xFFE2E8F0)),
-                          ),
-                        ),
-                      ),
                       ],
                     ),
                   ],
