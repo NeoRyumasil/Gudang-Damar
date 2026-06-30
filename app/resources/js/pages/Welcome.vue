@@ -461,7 +461,7 @@ const dashboardUrl = '/riwayat';
         </div>
         <div class="flex flex-col gap-4">
         <h4 class="font-sans text-xs tracking-wide font-bold text-stone-900 uppercase">Kontak</h4>
-        <p class="font-sans text-xs tracking-wide text-stone-500">Jl. Dapur Sejahtera No. 45<br/>Jakarta Selatan, 12345</p>
+        <p class="font-sans text-xs tracking-wide text-stone-500">Jl. A. Yani No.70, Malabar<br/>Kota Bandung, 40262</p>
         <p class="font-sans text-xs tracking-wide text-stone-500">halo@gudangdamar.com</p>
         </div>
         <div class="flex flex-col gap-4">
