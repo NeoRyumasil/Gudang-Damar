@@ -46,7 +46,8 @@ class _GrafikAktivitasScreenState extends State<GrafikAktivitasScreen> {
     final int totalPesanan = _stats['total_pesanan'] ?? 18;
     final int totalServis = _stats['total_servis'] ?? 5;
     final int totalBarang = _stats['total_stok_barang'] ?? 38;
-    final int totalTransaksi = totalPesanan + totalServis + totalBarang;
+    final int totalItems = totalPesanan + totalServis + totalBarang;
+    final int totalTransaksi = totalItems > 0 ? totalItems : 1;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
